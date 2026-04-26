@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Просмотр документа ремонта{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Документ ремонта #{{ item.id }}</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'repair_document_edit' item.id %}">Редактировать</a>
+        <a class="btn btn-outline-danger" href="{% url 'repair_document_delete' item.id %}">Удалить</a>
+        <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-12 col-md-3"><strong>Дата:</strong><br>{{ item.date|date:"d.m.Y" }}</div>
+            <div class="col-12 col-md-3"><strong>Место ремонта:</strong><br>{{ item.get_repair_place_display }}</div>
+            <div class="col-12 col-md-3"><strong>Организация:</strong><br>{{ item.organization.name }}</div>
+            <div class="col-12 col-md-3"><strong>Сервисный инженер:</strong><br>{{ item.serviceman.full_name }}</div>
+            <div class="col-12 col-md-3"><strong>Статус:</strong><br>{{ item.status.name }}</div>
+            <div class="col-12 col-md-6">
+                <strong>Техника клиента:</strong><br>
+                {% if item.client_equipment %}
+                    {{ item.client_equipment.product_model|default:"-" }}
+                    {% if item.client_equipment.serial_number %}<br><span class="text-muted">Серийный номер: {{ item.client_equipment.serial_number }}</span>{% endif %}
+                    {% if item.client_equipment.inventory_number %}<br><span class="text-muted">Инвентарный номер: {{ item.client_equipment.inventory_number }}</span>{% endif %}
+                    {% if item.client_equipment.print_counter is not None %}<br><span class="text-muted">Счетчик печати: {{ item.client_equipment.print_counter }}</span>{% endif %}
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div class="col-12 col-md-3"><strong>Дата редактирования статуса:</strong><br>{{ item.status_edited_at|date:"d.m.Y H:i:s" }}</div>
+            <div class="col-12 col-md-3">
+                <strong>Предыдущий документ:</strong><br>
+                {% if item.source_document %}
+                    <a href="{% url 'repair_document_view' item.source_document.id %}">#{{ item.source_document.id }}</a>
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div class="col-12"><strong>Неисправность:</strong><br>{{ item.malfunction|linebreaksbr|default:"-" }}</div>
+            <div class="col-12"><strong>Выполненные работы:</strong><br>{{ item.work_performed|linebreaksbr|default:"-" }}</div>
+            <div class="col-12"><strong>Примечание:</strong><br>{{ item.note|linebreaksbr|default:"-" }}</div>
+        </div>
+    </div>
+</div>
+
+{% if item.client_equipment %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="h5 m-0">История статусов по аппарату</h2>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'repair_document_equipment_history' item.client_equipment.id %}">Полная история</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead><tr><th>ID</th><th>Статус</th><th>Дата ред. статуса</th><th>Действия</th></tr></thead>
+                <tbody>
+                {% for history_item in equipment_history %}
+                    <tr {% if history_item.id == item.id %}class="table-primary"{% endif %}>
+                        <td>{{ history_item.id }}</td>
+                        <td>{{ history_item.status.name }}</td>
+                        <td>{{ history_item.status_edited_at|date:"d.m.Y H:i:s" }}</td>
+                        <td>
+                            {% if history_item.id == item.id %}
+                                <span class="badge text-bg-primary">Текущий</span>
+                            {% else %}
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'repair_document_view' history_item.id %}">Открыть</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center py-3">История статусов отсутствует.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h2 class="h5 m-0">Работы</h2></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead><tr><th>Код</th><th>Наименование</th><th>Цена</th><th>Количество</th></tr></thead>
+                <tbody>
+                {% for link in linked_works %}
+                    <tr>
+                        <td>{{ link.work.code }}</td>
+                        <td>{{ link.work.name }}</td>
+                        <td>{{ link.work.unit_price }}</td>
+                        <td>{{ link.quantity }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center py-3">Работы не добавлены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h2 class="h5 m-0">Запчасти</h2></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead><tr><th>Наименование</th><th>Артикул</th><th>Бренд</th><th>Всего</th><th>Ручное</th><th>Из работ</th><th>Источник</th></tr></thead>
+                <tbody>
+                {% for link in linked_parts %}
+                    <tr>
+                        <td>{{ link.part.name }}</td>
+                        <td>{{ link.part.sku|default:"-" }}</td>
+                        <td>{{ link.part.brand.name|default:"-" }}</td>
+                        <td>{{ link.quantity }}</td>
+                        <td>{{ link.manual_quantity }}</td>
+                        <td>{{ link.work_quantity }}</td>
+                        <td>
+                            {% if link.work_quantity > 0 and link.manual_quantity > 0 %}
+                                <span class="badge text-bg-warning">Смешанное</span>
+                            {% elif link.work_quantity > 0 %}
+                                <span class="badge text-bg-info">Из работы</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Ручное</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="text-center py-3">Запчасти не добавлены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header"><h2 class="h5 m-0">Расходные материалы</h2></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead><tr><th>Наименование</th><th>Артикул</th><th>Бренд</th><th>Всего</th><th>Ручное</th><th>Из работ</th><th>Источник</th></tr></thead>
+                <tbody>
+                {% for link in linked_consumables %}
+                    <tr>
+                        <td>{{ link.consumable.name }}</td>
+                        <td>{{ link.consumable.sku|default:"-" }}</td>
+                        <td>{{ link.consumable.brand.name|default:"-" }}</td>
+                        <td>{{ link.quantity }}</td>
+                        <td>{{ link.manual_quantity }}</td>
+                        <td>{{ link.work_quantity }}</td>
+                        <td>
+                            {% if link.work_quantity > 0 and link.manual_quantity > 0 %}
+                                <span class="badge text-bg-warning">Смешанное</span>
+                            {% elif link.work_quantity > 0 %}
+                                <span class="badge text-bg-info">Из работы</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Ручное</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="text-center py-3">Расходные материалы не добавлены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Справочник организаций{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-xl-5">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h1 class="h5 m-0">
+                    {% if editing_organization %}Редактирование организации{% else %}Новая организация{% endif %}
+                </h1>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if editing_organization %}
+                        <input type="hidden" name="organization_id" value="{{ editing_organization.id }}">
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {% if field.name == "inn_kpp" %}
+                                <div class="input-group">
+                                    {{ field }}
+                                    <button type="button" class="btn btn-outline-secondary" id="egrul-fill-btn" data-lookup-url="{% url 'egrul_lookup' %}">
+                                        Заполнить из ЕГРЮЛ
+                                    </button>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="egrul-overwrite">
+                                    <label class="form-check-label" for="egrul-overwrite">
+                                        Перезаписать заполненные поля
+                                    </label>
+                                </div>
+                                <div class="form-text" id="egrul-status"></div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        {% if editing_organization %}
+                            <a class="btn btn-outline-secondary" href="{% url 'organizations' %}">Новая запись</a>
+                        {% else %}
+                            <button type="submit" class="btn btn-outline-primary">Сохранить и добавить контакты</button>
+                        {% endif %}
+                    </div>
+                </form>
+
+                {% if not editing_organization %}
+                    <div class="alert alert-info mt-3 mb-0" role="alert">
+                        Контакты добавляются после первого сохранения организации.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if editing_organization %}
+            <div class="card shadow-sm mt-4" id="contacts-section">
+                <div class="card-header">
+                    <h2 class="h5 m-0">Контакты организации</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        {% if editing_contact %}
+                            <input type="hidden" name="action" value="update_contact">
+                            <input type="hidden" name="contact_id" value="{{ editing_contact.id }}">
+                        {% else %}
+                            <input type="hidden" name="action" value="add_contact">
+                        {% endif %}
+                        <input type="hidden" name="organization_id" value="{{ editing_organization.id }}">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <input type="hidden" name="status" value="{{ status_filter }}">
+                        <input type="hidden" name="per_page" value="{{ per_page }}">
+
+                        {% for field in contact_form %}
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary">
+                                {% if editing_contact %}Сохранить контакт{% else %}Добавить контакт{% endif %}
+                            </button>
+                            {% if editing_contact %}
+                                <a class="btn btn-outline-secondary" href="{% url 'organizations' %}?edit={{ editing_organization.id }}&q={{ query|urlencode }}&status={{ status_filter|urlencode }}">Отмена</a>
+                            {% endif %}
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Должность</th>
+                                <th>Телефон</th>
+                                <th>Действие</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for contact in contacts %}
+                                <tr>
+                                    <td>{{ contact.name }}</td>
+                                    <td>{{ contact.position|default:"-" }}</td>
+                                    <td>{{ contact.phone }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a class="btn btn-sm btn-outline-primary" href="{% url 'organizations' %}?edit={{ editing_organization.id }}&contact_edit={{ contact.id }}&q={{ query|urlencode }}&status={{ status_filter|urlencode }}">Редактировать</a>
+                                            <form method="post" onsubmit="return confirm('Удалить контакт {{ contact.name }}?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_contact">
+                                                <input type="hidden" name="contact_id" value="{{ contact.id }}">
+                                                <input type="hidden" name="q" value="{{ query }}">
+                                                <input type="hidden" name="status" value="{{ status_filter }}">
+                                                <input type="hidden" name="per_page" value="{{ per_page }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-3">Контактов пока нет.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if editing_organization %}
+        <div class="card shadow-sm mt-4" id="addresses-section">
+            <div class="card-header">
+                <h2 class="h5 m-0">Адреса организации</h2>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th>Главный офис</th>
+                            <th>Населённый пункт</th>
+                            <th>Улица</th>
+                            <th>Дом</th>
+                            <th>Индекс</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for link in linked_addresses %}
+                            <tr>
+                                <td>
+                                    <form method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="set_main_office">
+                                        <input type="hidden" name="organization_id" value="{{ editing_organization.id }}">
+                                        <input type="hidden" name="address_id" value="{{ link.address.id }}">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="status" value="{{ status_filter }}">
+                                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                                        <input type="hidden" name="address_q" value="{{ address_query }}">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="main_office"
+                                            {% if link.main_office %}checked{% endif %}
+                                            onchange="this.form.submit()"
+                                        >
+                                    </form>
+                                </td>
+                                <td>{{ link.address.locality }}</td>
+                                <td>{{ link.address.street|default:"-" }}</td>
+                                <td>{{ link.address.house|default:"-" }}</td>
+                                <td>{{ link.address.postal_code|default:"-" }}</td>
+                                <td>
+                                    <form method="post" onsubmit="return confirm('Открепить адрес от организации?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_address">
+                                        <input type="hidden" name="organization_id" value="{{ editing_organization.id }}">
+                                        <input type="hidden" name="address_id" value="{{ link.address.id }}">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="status" value="{{ status_filter }}">
+                                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                                        <input type="hidden" name="address_q" value="{{ address_query }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Открепить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-3">Адресов пока нет.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <h2 class="h5 m-0">Добавить адрес (поиск из справочника)</h2>
+            </div>
+            <div class="card-body border-bottom">
+                <form method="get" class="row g-2 align-items-end">
+                    <div class="col-12 col-md-10">
+                        <label class="form-label">Поиск (населённый пункт, улица, дом)</label>
+                        <div class="input-group">
+                            <input type="text" name="address_q" class="form-control" value="{{ address_query }}" placeholder="Введите текст для поиска адреса">
+                            <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'address_q\']').value=''; form.submit();">X</button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="edit" value="{{ editing_organization.id }}">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="status" value="{{ status_filter }}">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th>Населённый пункт</th>
+                            <th>Улица</th>
+                            <th>Дом</th>
+                            <th>Индекс</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for address in address_candidates %}
+                            <tr>
+                                <td>{{ address.locality }}</td>
+                                <td>{{ address.street|default:"-" }}</td>
+                                <td>{{ address.house|default:"-" }}</td>
+                                <td>{{ address.postal_code|default:"-" }}</td>
+                                <td>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_address">
+                                        <input type="hidden" name="organization_id" value="{{ editing_organization.id }}">
+                                        <input type="hidden" name="address_id" value="{{ address.id }}">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="status" value="{{ status_filter }}">
+                                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                                        <input type="hidden" name="address_q" value="{{ address_query }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Привязать</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3">Нет адресов для добавления{% if address_query %} по текущему поиску{% endif %}.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 class="h5 m-0">Организации</h2>
+            </div>
+            <div class="card-body border-bottom">
+                <form method="get" class="row g-2 align-items-end">
+                    <div class="col-12 col-md-7">
+                        <label class="form-label">Поиск (название, ИНН/КПП)</label>
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary"
+                                title="Очистить поиск"
+                                onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();"
+                            >X</button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">Статус</label>
+                        <select name="status" class="form-select">
+                            <option value="">Все</option>
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-1">
+                        {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+                    </div>
+                    <div class="col-12 col-md-1 d-grid gap-2">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>ИНН/КПП</th>
+                            <th>Телефон</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for organization in organizations %}
+                            <tr>
+                                <td>{{ organization.name }}</td>
+                                <td>{{ organization.inn_kpp|default:"-" }}</td>
+                                <td>{{ organization.phone|default:"-" }}</td>
+                                <td>{{ organization.get_status_display }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-primary" href="{% url 'organizations' %}?edit={{ organization.id }}&q={{ query|urlencode }}&status={{ status_filter|urlencode }}&per_page={{ per_page }}">Редактировать</a>
+                                        <form method="post" onsubmit="return confirm('Удалить организацию {{ organization.name }}?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="organization_id" value="{{ organization.id }}">
+                                            <input type="hidden" name="q" value="{{ query }}">
+                                            <input type="hidden" name="status" value="{{ status_filter }}">
+                                            <input type="hidden" name="per_page" value="{{ per_page }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">Справочник пуст.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% include "includes/pagination_controls.html" %}
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    const btn = document.getElementById("egrul-fill-btn");
+    if (!btn) {
+        return;
+    }
+
+    const innInput = document.getElementById("id_inn_kpp");
+    const nameInput = document.getElementById("id_name");
+    const ogrnInput = document.getElementById("id_ogrn_passport");
+    const overwriteCheckbox = document.getElementById("egrul-overwrite");
+    const status = document.getElementById("egrul-status");
+
+    const setStatus = (message, isError = false) => {
+        status.textContent = message;
+        status.className = isError ? "form-text text-danger" : "form-text text-success";
+    };
+
+    btn.addEventListener("click", async () => {
+        const inn = (innInput.value || "").trim();
+        if (!inn) {
+            setStatus("Сначала введите ИНН/КПП.", true);
+            return;
+        }
+
+        btn.disabled = true;
+        setStatus("Запрашиваем данные ЕГРЮЛ...");
+        try {
+            const url = `${btn.dataset.lookupUrl}?inn=${encodeURIComponent(inn)}`;
+            const response = await fetch(url, {headers: {"X-Requested-With": "XMLHttpRequest"}});
+            const payload = await response.json();
+
+            if (!response.ok || !payload.ok) {
+                throw new Error(payload.error || "Ошибка запроса.");
+            }
+
+            const data = payload.data || {};
+            const overwrite = !!(overwriteCheckbox && overwriteCheckbox.checked);
+            if (data.name && (overwrite || !nameInput.value.trim())) {
+                nameInput.value = data.name;
+            }
+            if (data.ogrn && (overwrite || !ogrnInput.value.trim())) {
+                ogrnInput.value = data.ogrn;
+            }
+            if (data.address) {
+                setStatus("Данные из ЕГРЮЛ подставлены. Адрес из ЕГРЮЛ добавьте в справочник адресов и выберите в поле «Адреса». ");
+            } else {
+                setStatus("Данные из ЕГРЮЛ подставлены.");
+            }
+        } catch (error) {
+            setStatus(error.message || "Не удалось получить данные ЕГРЮЛ.", true);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}

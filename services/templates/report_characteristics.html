@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Отчет: Характеристики техники{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <h1 class="h4 m-0">Отчет: Характеристики техники</h1>
+    <div class="d-flex gap-2">
+        {% if detail_view %}
+            <a href="{{ list_url }}" class="btn btn-outline-secondary">К списку</a>
+        {% endif %}
+        <form method="get" class="m-0">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="tags" value="{{ tags_filter }}">
+            <input type="hidden" name="tags_mode" value="{{ tags_mode }}">
+            <input type="hidden" name="brand" value="{{ brand_filter }}">
+            <input type="hidden" name="category" value="{{ category_filter }}">
+            <input type="hidden" name="model" value="{{ model_filter }}">
+            <input type="hidden" name="type" value="{{ type_filter }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel_list" class="btn btn-outline-success">Экспорт списка</button>
+        </form>
+        <form method="get" class="m-0">
+            <input type="hidden" name="item" value="{% if selected_item %}{{ selected_item.id }}{% endif %}">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="tags" value="{{ tags_filter }}">
+            <input type="hidden" name="tags_mode" value="{{ tags_mode }}">
+            <input type="hidden" name="brand" value="{{ brand_filter }}">
+            <input type="hidden" name="category" value="{{ category_filter }}">
+            <input type="hidden" name="model" value="{{ model_filter }}">
+            <input type="hidden" name="type" value="{{ type_filter }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel" class="btn btn-outline-primary" {% if not selected_item %}disabled{% endif %}>Экспорт выбранной</button>
+        </form>
+    </div>
+</div>
+
+{% if not detail_view %}
+<div class="card shadow-sm mb-4 no-print">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-2">
+                <label class="form-label">Поиск (техника, тип, значение)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Теги (для теговых характеристик)</label>
+                <div class="js-tags-filter" data-initial-tags="{{ tags_filter }}">
+                    <input type="hidden" name="tags" class="js-tags-hidden" value="{{ tags_filter }}">
+                    <input type="text" class="form-control js-tags-input" placeholder="Введите тег и нажмите Enter или запятую">
+                    <div class="d-flex flex-wrap gap-2 mt-2 js-tags-chips"></div>
+                </div>
+            </div>
+            <div class="col-12 col-md-1">
+                <label class="form-label">Режим</label>
+                <select class="form-select" name="tags_mode">
+                    <option value="and" {% if tags_mode == 'and' %}selected{% endif %}>И</option>
+                    <option value="or" {% if tags_mode == 'or' %}selected{% endif %}>ИЛИ</option>
+                </select>
+                <div class="form-text">И: все теги. ИЛИ: любой тег.</div>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Бренд</label>
+                <select class="form-select" name="brand">
+                    <option value="">Все</option>
+                    {% for b in all_brands %}
+                        <option value="{{ b.id }}" {% if brand_filter == b.id|stringformat:'s' %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Категория</label>
+                <select class="form-select" name="category">
+                    <option value="">Все</option>
+                    {% for c in all_categories %}
+                        <option value="{{ c.id }}" {% if category_filter == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Техника</label>
+                <select class="form-select" name="model">
+                    <option value="">Все</option>
+                    {% for model in all_models %}
+                        <option value="{{ model.id }}" {% if model_filter == model.id|stringformat:'s' %}selected{% endif %}>{{ model.name }}{% if model.brand_id %} ({{ model.brand.name }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Тип характеристики</label>
+                <select class="form-select" name="type">
+                    <option value="">Все</option>
+                    {% for t in all_types %}
+                        <option value="{{ t.id }}" {% if type_filter == t.id|stringformat:'s' %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <div class="col-12 col-md-1">
+                {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'report_characteristics' %}?{{ sort_links.product_model }}" class="text-decoration-none">Техника{% if sort == 'product_model' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Бренд</th>
+                    <th><a href="{% url 'report_characteristics' %}?{{ sort_links.characteristic_type }}" class="text-decoration-none">Характеристика{% if sort == 'characteristic_type' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_characteristics' %}?{{ sort_links.value }}" class="text-decoration-none">Значение{% if sort == 'value' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Отчет</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.product_model.name }}</td>
+                        <td>{% if item.product_model.brand_id %}{{ item.product_model.brand.name }}{% else %}-{% endif %}</td>
+                        <td>{{ item.characteristic_type.name }}</td>
+                        <td>{{ item.value }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'report_characteristics' %}?view=detail&item={{ item.id }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if tags_filter %}&tags={{ tags_filter|urlencode }}{% endif %}&tags_mode={{ tags_mode }}{% if brand_filter %}&brand={{ brand_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if model_filter %}&model={{ model_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}{% if page_obj %}&page={{ page_obj.number }}{% endif %}">Отчет</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">Записи не найдены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include "includes/pagination_controls.html" with pagination_wrapper_class="d-flex justify-content-between align-items-center mb-4 no-print" pagination_controls_class="btn-group" pagination_controls_role="group" pagination_button_class="btn btn-outline-secondary" %}
+{% endif %}
+
+{% if detail_view and selected_item %}
+    <div class="card shadow-sm print-sheet">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2 class="h5 m-0">Отчет по характеристике</h2>
+                    <div class="text-muted">{{ selected_item.product_model.name }}</div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();">Печать</button>
+            </div>
+            <div class="row g-3">
+                <div class="col-12 col-md-4"><strong>Техника:</strong><br>{{ selected_item.product_model.name }}</div>
+                <div class="col-12 col-md-4"><strong>Бренд:</strong><br>{% if selected_item.product_model.brand_id %}{{ selected_item.product_model.brand.name }}{% else %}-{% endif %}</div>
+                <div class="col-12 col-md-4"><strong>Артикул:</strong><br>{{ selected_item.product_model.sku|default:'-' }}</div>
+                <div class="col-12 col-md-6"><strong>Характеристика:</strong><br>{{ selected_item.characteristic_type.name }} ({{ selected_item.characteristic_type.code }})</div>
+                <div class="col-12 col-md-6"><strong>Значение:</strong><br>{{ selected_item.value }}</div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const filterEditor = document.querySelector(".js-tags-filter");
+    if (!filterEditor) {
+        return;
+    }
+
+    const hiddenInput = filterEditor.querySelector(".js-tags-hidden");
+    const textInput = filterEditor.querySelector(".js-tags-input");
+    const chipsContainer = filterEditor.querySelector(".js-tags-chips");
+    const ownerForm = filterEditor.closest("form");
+
+    function normalizeTag(value) {
+        return (value || "").trim();
+    }
+
+    function parseTags(raw) {
+        const result = [];
+        (raw || "").split(",").forEach((part) => {
+            const normalized = normalizeTag(part);
+            if (!normalized) {
+                return;
+            }
+            if (result.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
+                return;
+            }
+            result.push(normalized);
+        });
+        return result;
+    }
+
+    let tags = parseTags(filterEditor.dataset.initialTags || hiddenInput.value || "");
+
+    function syncHidden() {
+        hiddenInput.value = tags.join(", ");
+    }
+
+    function renderChips() {
+        chipsContainer.innerHTML = "";
+        tags.forEach((tag, index) => {
+            const chip = document.createElement("span");
+            chip.className = "badge rounded-pill text-bg-light border";
+
+            const textNode = document.createElement("span");
+            textNode.textContent = tag;
+            chip.appendChild(textNode);
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "btn-close btn-close-sm ms-2";
+            removeButton.setAttribute("aria-label", "Удалить тег");
+            removeButton.addEventListener("click", () => {
+                tags.splice(index, 1);
+                syncHidden();
+                renderChips();
+            });
+            chip.appendChild(removeButton);
+
+            chipsContainer.appendChild(chip);
+        });
+    }
+
+    function addFromInput() {
+        const parts = (textInput.value || "").split(",");
+        let changed = false;
+        parts.forEach((part) => {
+            const normalized = normalizeTag(part);
+            if (!normalized) {
+                return;
+            }
+            if (tags.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
+                return;
+            }
+            tags.push(normalized);
+            changed = true;
+        });
+        textInput.value = "";
+        if (changed) {
+            syncHidden();
+            renderChips();
+        }
+    }
+
+    textInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === ",") {
+            event.preventDefault();
+            addFromInput();
+        }
+    });
+
+    textInput.addEventListener("blur", () => {
+        addFromInput();
+    });
+
+    ownerForm.addEventListener("submit", () => {
+        addFromInput();
+        syncHidden();
+    });
+
+    syncHidden();
+    renderChips();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Управление стилями{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Управление стилями</h1>
+</div>
+
+{% if preview_theme %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+        <div>
+            Предпросмотр темы: <strong>{{ preview_theme.name }}</strong>. Тема применена только к текущей странице и не активирована.
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'style_settings' %}">Сбросить предпросмотр</a>
+    </div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h2 class="h5 m-0">Загрузка Bootstrap Theme ZIP</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-3">Загрузите zip-архив темы Bootstrap. Архив будет распакован в папку themes/uploaded, после чего тема появится в меню Стиль и в списке ниже.</p>
+        <form method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="upload_theme">
+            <div class="col-12 col-lg-8">
+                <label class="form-label" for="id_theme_zip">ZIP-файл темы</label>
+                <input type="file" name="theme_zip" id="id_theme_zip" class="form-control" accept=".zip" required>
+            </div>
+            <div class="col-12 col-lg-4 d-grid">
+                <button type="submit" class="btn btn-primary">Загрузить тему</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="h5 m-0">Доступные темы</h2>
+        {% if active_theme %}
+            <span class="badge text-bg-primary">Активная: {{ active_theme.name }}</span>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Статус</th>
+                        <th>Источник файла</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for theme in themes %}
+                        <tr>
+                            <td>
+                                {{ theme.name }}
+                                {% if active_theme and active_theme.key == theme.key %}
+                                    <span class="badge text-bg-primary ms-2">активна</span>
+                                {% endif %}
+                                {% if latest_uploaded_theme and latest_uploaded_theme.key == theme.key %}
+                                    <span class="badge text-bg-secondary ms-2">последняя загрузка</span>
+                                {% endif %}
+                            </td>
+                            <td>{% if theme.source == 'builtin' %}Встроенная{% else %}Загруженная{% endif %}</td>
+                            <td>
+                                {% if default_theme_key == theme.key %}
+                                    <span class="badge text-bg-dark">по умолчанию</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td><small class="text-muted">{{ theme.relative_path }}</small></td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'style_settings' %}?preview_theme={{ theme.key }}">Предпросмотр</a>
+                                <form method="post" class="m-0 d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="select_theme">
+                                    <input type="hidden" name="theme_key" value="{{ theme.key }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" {% if active_theme and active_theme.key == theme.key %}disabled{% endif %}>Выбрать</button>
+                                </form>
+                                <form method="post" class="m-0 d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="set_default_theme">
+                                    <input type="hidden" name="theme_key" value="{{ theme.key }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-dark" {% if default_theme_key == theme.key %}disabled{% endif %}>По умолчанию</button>
+                                </form>
+                                {% if theme.source == 'uploaded' %}
+                                    <form method="post" class="m-0 d-inline" onsubmit="return confirm('Удалить загруженную тему {{ theme.name }}?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_theme">
+                                        <input type="hidden" name="theme_key" value="{{ theme.key }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">Темы пока не найдены.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

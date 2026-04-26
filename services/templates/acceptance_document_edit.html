@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing_document %}Редактирование документа приемки{% else %}Новый документ приемки{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">{% if editing_document %}Документ приемки #{{ editing_document.id }}{% else %}Новый документ приемки{% endif %}</h1>
+    <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="{{ form.serviceman.id_for_label }}">{{ form.serviceman.label }}</label>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        id="serviceman_search"
+                        placeholder="Поиск по ФИО"
+                        autocomplete="off"
+                    >
+                    {{ form.serviceman }}
+                    {% if form.serviceman.errors %}<div class="text-danger small mt-1">{{ form.serviceman.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-md-5">
+                    <label class="form-label" for="{{ form.organization.id_for_label }}">{{ form.organization.label }}</label>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        id="organization_search"
+                        placeholder="Поиск по наименованию"
+                        autocomplete="off"
+                    >
+                    {{ form.organization }}
+                    {% if form.organization.errors %}<div class="text-danger small mt-1">{{ form.organization.errors|striptags }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                {% if editing_document %}
+                    <a class="btn btn-outline-primary" href="{% url 'acceptance_document_new' %}">Новый документ</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if editing_document %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h2 class="h5 m-0">Поиск техники по серийному номеру</h2>
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="search_serial">
+            <div class="col-12 col-md-10">
+                <label class="form-label">Серийный номер</label>
+                <input type="text" name="serial_query" class="form-control" value="{{ serial_query }}" placeholder="Введите серийный номер">
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="h5 m-0">Техника в документе</h2>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead><tr><th>Наименование</th><th>Серийный</th><th>Инвентарный</th><th>Счетчик</th><th>Ремонт</th><th>Действия</th></tr></thead>
+                <tbody>
+                {% for link in linked_equipment %}
+                    <tr>
+                        <td>{{ link.client_equipment.product_model|default:"-" }}</td>
+                        <td>{{ link.client_equipment.serial_number|default:"-" }}</td>
+                        <td>{{ link.client_equipment.inventory_number|default:"-" }}</td>
+                        <td>{{ link.client_equipment.print_counter|default:"-" }}</td>
+                        <td>
+                            {% if link.repair_document_id %}
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'repair_document_edit' link.repair_document_id %}">Открыть ремонт #{{ link.repair_document_id }}</a>
+                            {% else %}
+                                <span class="text-muted">Не создан</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Удалить строку техники из документа?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_equipment">
+                                <input type="hidden" name="link_id" value="{{ link.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center py-3">Строки техники еще не добавлены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    (function () {
+        function attachSelectFilter(searchInputId, selectId) {
+            const searchInput = document.getElementById(searchInputId);
+            const select = document.getElementById(selectId);
+            if (!searchInput || !select) {
+                return;
+            }
+
+            const options = Array.from(select.options).map((option) => ({
+                value: option.value,
+                text: option.text,
+                selected: option.selected,
+            }));
+
+            searchInput.addEventListener("input", function () {
+                const q = this.value.trim().toLowerCase();
+                const currentValue = select.value;
+
+                select.innerHTML = "";
+                options.forEach((item) => {
+                    const matches = !q || item.text.toLowerCase().includes(q);
+                    if (matches) {
+                        const opt = document.createElement("option");
+                        opt.value = item.value;
+                        opt.textContent = item.text;
+                        if (item.value === currentValue) {
+                            opt.selected = true;
+                        }
+                        select.appendChild(opt);
+                    }
+                });
+
+                if (select.options.length === 0) {
+                    const opt = document.createElement("option");
+                    opt.value = "";
+                    opt.textContent = "Ничего не найдено";
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        attachSelectFilter("serviceman_search", "id_serviceman");
+        attachSelectFilter("organization_search", "id_organization");
+
+        {% if ask_add_serial and add_equipment_url %}
+        if (confirm("Серийный номер '{{ ask_add_serial|escapejs }}' не найден. Добавить новую запись техники?")) {
+            window.location.href = "{{ add_equipment_url }}";
+        }
+        {% endif %}
+    })();
+</script>
+{% endblock %}

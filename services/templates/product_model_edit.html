@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing_model %}Редактирование техники{% else %}Новая техника{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">{% if editing_model %}Редактирование техники{% else %}Новая техника{% endif %}</h1>
+    <div class="d-flex gap-2">
+        {% if editing_model %}
+            <a class="btn btn-outline-danger" href="{% url 'product_model_delete' editing_model.id %}?q={{ q|urlencode }}&brand={{ brand }}&category={{ category }}&device_type={{ device_type|urlencode }}&sort={{ sort }}&dir={{ dir }}">Удалить</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="q" value="{{ q }}">
+            <input type="hidden" name="brand" value="{{ brand }}">
+            <input type="hidden" name="category" value="{{ category }}">
+            <input type="hidden" name="device_type" value="{{ device_type }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ dir }}">
+            <input type="hidden" name="cons_q" value="{{ cons_query }}">
+            <input type="hidden" name="cons_brand" value="{{ cons_brand_filter }}">
+            <input type="hidden" name="cons_category" value="{{ cons_category_filter }}">
+            <input type="hidden" name="cons_sort" value="{{ cons_sort }}">
+            <input type="hidden" name="cons_dir" value="{{ cons_dir }}">
+            <input type="hidden" name="part_q" value="{{ part_query }}">
+            <input type="hidden" name="part_brand" value="{{ part_brand_filter }}">
+            <input type="hidden" name="part_category" value="{{ part_category_filter }}">
+            <input type="hidden" name="part_sort" value="{{ part_sort }}">
+            <input type="hidden" name="part_dir" value="{{ part_dir }}">
+
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-12 col-lg-6">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                {% if editing_model %}
+                    <a class="btn btn-outline-primary" href="{% url 'product_model_new' %}?q={{ q|urlencode }}&brand={{ brand }}&category={{ category }}&device_type={{ device_type|urlencode }}&sort={{ sort }}&dir={{ dir }}">Новая запись</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if editing_model %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 m-0">Характеристики</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="post" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_characteristic">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="brand" value="{{ brand }}">
+                <input type="hidden" name="category" value="{{ category }}">
+                <input type="hidden" name="device_type" value="{{ device_type }}">
+                <input type="hidden" name="sort" value="{{ sort }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <input type="hidden" name="cons_q" value="{{ cons_query }}">
+                <input type="hidden" name="cons_brand" value="{{ cons_brand_filter }}">
+                <input type="hidden" name="cons_category" value="{{ cons_category_filter }}">
+                <input type="hidden" name="cons_sort" value="{{ cons_sort }}">
+                <input type="hidden" name="cons_dir" value="{{ cons_dir }}">
+                <input type="hidden" name="part_q" value="{{ part_query }}">
+                <input type="hidden" name="part_brand" value="{{ part_brand_filter }}">
+                <input type="hidden" name="part_category" value="{{ part_category_filter }}">
+                <input type="hidden" name="part_sort" value="{{ part_sort }}">
+                <input type="hidden" name="part_dir" value="{{ part_dir }}">
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Характеристика</label>
+                    <select name="characteristic_type_id" class="form-select" id="characteristic-type-select" required>
+                        <option value="">Выберите характеристику</option>
+                        {% for ctype in characteristic_types %}
+                            <option value="{{ ctype.id }}" data-value-kind="{{ ctype.value_kind }}">{{ ctype.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Значение</label>
+
+                    <div id="characteristic-input-text" class="characteristic-input-kind">
+                        <input type="text" name="characteristic_value" class="form-control" placeholder="Введите значение">
+                    </div>
+
+                    <div id="characteristic-input-number" class="characteristic-input-kind d-none">
+                        <input type="number" step="any" name="characteristic_value_number" class="form-control" placeholder="Введите число">
+                    </div>
+
+                    <div id="characteristic-input-boolean" class="characteristic-input-kind d-none">
+                        <input type="hidden" name="characteristic_value_bool" id="characteristic-bool-hidden" value="0">
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" id="characteristic-bool-check" value="1">
+                            <label class="form-check-label" for="characteristic-bool-check">Включено</label>
+                        </div>
+                    </div>
+
+                    <div id="characteristic-input-tags" class="characteristic-input-kind d-none">
+                        <input type="hidden" name="characteristic_value_tags" id="characteristic-tags-hidden" value="">
+                        <input type="text" id="characteristic-tags-input" class="form-control" placeholder="Введите элемент и нажмите Enter или запятую">
+                        <div id="characteristic-tags-chips" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Характеристика</th>
+                        <th>Значение</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in model_characteristics %}
+                        <tr>
+                            <td>{{ item.characteristic_type.name }}</td>
+                            <td>
+                                <form method="post" class="row g-2 align-items-center">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="update_characteristic">
+                                    <input type="hidden" name="characteristic_id" value="{{ item.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="brand" value="{{ brand }}">
+                                    <input type="hidden" name="category" value="{{ category }}">
+                                    <input type="hidden" name="device_type" value="{{ device_type }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="cons_q" value="{{ cons_query }}">
+                                    <input type="hidden" name="cons_brand" value="{{ cons_brand_filter }}">
+                                    <input type="hidden" name="cons_category" value="{{ cons_category_filter }}">
+                                    <input type="hidden" name="cons_sort" value="{{ cons_sort }}">
+                                    <input type="hidden" name="cons_dir" value="{{ cons_dir }}">
+                                    <input type="hidden" name="part_q" value="{{ part_query }}">
+                                    <input type="hidden" name="part_brand" value="{{ part_brand_filter }}">
+                                    <input type="hidden" name="part_category" value="{{ part_category_filter }}">
+                                    <input type="hidden" name="part_sort" value="{{ part_sort }}">
+                                    <input type="hidden" name="part_dir" value="{{ part_dir }}">
+
+                                    <div class="col-12 col-md-8">
+                                        {% if item.characteristic_type.value_kind == 'boolean' %}
+                                            <input type="hidden" name="characteristic_value_bool" value="0">
+                                            <div class="form-check mt-1">
+                                                <input class="form-check-input" type="checkbox" name="characteristic_value_bool" value="1" id="bool-{{ item.id }}" {% if item.value == '1' %}checked{% endif %}>
+                                                <label class="form-check-label" for="bool-{{ item.id }}">Включено</label>
+                                            </div>
+                                        {% elif item.characteristic_type.value_kind == 'number' %}
+                                            <input type="number" step="any" name="characteristic_value_number" class="form-control form-control-sm" value="{{ item.value }}">
+                                        {% elif item.characteristic_type.value_kind == 'tags' %}
+                                            <div class="js-tags-editor" data-initial-tags="{{ item.value }}">
+                                                <input type="hidden" name="characteristic_value_tags" class="js-tags-hidden" value="{{ item.value }}">
+                                                <input type="text" class="form-control form-control-sm js-tags-input" placeholder="Введите элемент и нажмите Enter или запятую">
+                                                <div class="d-flex flex-wrap gap-2 mt-2 js-tags-chips"></div>
+                                            </div>
+                                        {% else %}
+                                            <input type="text" name="characteristic_value" class="form-control form-control-sm" value="{{ item.value }}">
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-md-4 d-grid">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Сохранить</button>
+                                    </div>
+                                </form>
+
+                            </td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Удалить характеристику «{{ item.characteristic_type.name }}»?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_characteristic">
+                                    <input type="hidden" name="characteristic_id" value="{{ item.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="brand" value="{{ brand }}">
+                                    <input type="hidden" name="category" value="{{ category }}">
+                                    <input type="hidden" name="device_type" value="{{ device_type }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="cons_q" value="{{ cons_query }}">
+                                    <input type="hidden" name="cons_brand" value="{{ cons_brand_filter }}">
+                                    <input type="hidden" name="cons_category" value="{{ cons_category_filter }}">
+                                    <input type="hidden" name="cons_sort" value="{{ cons_sort }}">
+                                    <input type="hidden" name="cons_dir" value="{{ cons_dir }}">
+                                    <input type="hidden" name="part_q" value="{{ part_query }}">
+                                    <input type="hidden" name="part_brand" value="{{ part_brand_filter }}">
+                                    <input type="hidden" name="part_category" value="{{ part_category_filter }}">
+                                    <input type="hidden" name="part_sort" value="{{ part_sort }}">
+                                    <input type="hidden" name="part_dir" value="{{ part_dir }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-3">Характеристики еще не добавлены.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 m-0">Связанные расходные материалы</h2>
+            <a class="btn btn-sm btn-outline-primary" href="{{ consumable_links_url }}">Управлять связями</a>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-5">
+                    <label class="form-label">Поиск (наименование, артикул, бренд, категория)</label>
+                    <div class="input-group">
+                        <input type="text" name="cons_q" class="form-control" value="{{ cons_query }}" placeholder="Введите текст для поиска">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'cons_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Бренд</label>
+                    <select name="cons_brand" class="form-select">
+                        <option value="">Все бренды</option>
+                        {% for b in all_brands %}
+                            <option value="{{ b.id }}" {% if cons_brand_filter == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Категория</label>
+                    <select name="cons_category" class="form-select">
+                        <option value="">Все категории</option>
+                        {% for c in all_categories %}
+                            <option value="{{ c.id }}" {% if cons_category_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="brand" value="{{ brand }}">
+                <input type="hidden" name="category" value="{{ category }}">
+                <input type="hidden" name="device_type" value="{{ device_type }}">
+                <input type="hidden" name="sort" value="{{ sort }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <input type="hidden" name="cons_sort" value="{{ cons_sort }}">
+                <input type="hidden" name="cons_dir" value="{{ cons_dir }}">
+                <input type="hidden" name="part_q" value="{{ part_query }}">
+                <input type="hidden" name="part_brand" value="{{ part_brand_filter }}">
+                <input type="hidden" name="part_category" value="{{ part_category_filter }}">
+                <input type="hidden" name="part_sort" value="{{ part_sort }}">
+                <input type="hidden" name="part_dir" value="{{ part_dir }}">
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ cons_sort_links.name }}" class="text-decoration-none">Наименование{% if cons_sort == 'name' %} {% if cons_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ cons_sort_links.brand }}" class="text-decoration-none">Бренд{% if cons_sort == 'brand' %} {% if cons_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ cons_sort_links.category }}" class="text-decoration-none">Категория{% if cons_sort == 'category' %} {% if cons_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ cons_sort_links.sku }}" class="text-decoration-none">Артикул{% if cons_sort == 'sku' %} {% if cons_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in linked_consumables %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.brand.name|default:"-" }}</td>
+                            <td>{{ item.category|default:"-" }}</td>
+                            <td>{{ item.sku|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3">Связанные расходные материалы не найдены.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 m-0">Связанные запчасти</h2>
+            <a class="btn btn-sm btn-outline-primary" href="{{ part_links_url }}">Управлять связями</a>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-5">
+                    <label class="form-label">Поиск (наименование, артикул, бренд, категория)</label>
+                    <div class="input-group">
+                        <input type="text" name="part_q" class="form-control" value="{{ part_query }}" placeholder="Введите текст для поиска">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'part_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Бренд</label>
+                    <select name="part_brand" class="form-select">
+                        <option value="">Все бренды</option>
+                        {% for b in all_brands %}
+                            <option value="{{ b.id }}" {% if part_brand_filter == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Категория</label>
+                    <select name="part_category" class="form-select">
+                        <option value="">Все категории</option>
+                        {% for c in all_categories %}
+                            <option value="{{ c.id }}" {% if part_category_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="brand" value="{{ brand }}">
+                <input type="hidden" name="category" value="{{ category }}">
+                <input type="hidden" name="device_type" value="{{ device_type }}">
+                <input type="hidden" name="sort" value="{{ sort }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <input type="hidden" name="cons_q" value="{{ cons_query }}">
+                <input type="hidden" name="cons_brand" value="{{ cons_brand_filter }}">
+                <input type="hidden" name="cons_category" value="{{ cons_category_filter }}">
+                <input type="hidden" name="cons_sort" value="{{ cons_sort }}">
+                <input type="hidden" name="cons_dir" value="{{ cons_dir }}">
+                <input type="hidden" name="part_sort" value="{{ part_sort }}">
+                <input type="hidden" name="part_dir" value="{{ part_dir }}">
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ part_sort_links.name }}" class="text-decoration-none">Наименование{% if part_sort == 'name' %} {% if part_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ part_sort_links.brand }}" class="text-decoration-none">Бренд{% if part_sort == 'brand' %} {% if part_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ part_sort_links.category }}" class="text-decoration-none">Категория{% if part_sort == 'category' %} {% if part_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                        <th><a href="{% url 'product_model_edit' editing_model.id %}?{{ part_sort_links.sku }}" class="text-decoration-none">Артикул{% if part_sort == 'sku' %} {% if part_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in linked_parts %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.brand.name|default:"-" }}</td>
+                            <td>{{ item.category|default:"-" }}</td>
+                            <td>{{ item.sku|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3">Связанные запчасти не найдены.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    function normalizeTag(value) {
+        return (value || "").trim();
+    }
+
+    function parseTags(raw) {
+        const result = [];
+        (raw || "").split(",").forEach((part) => {
+            const normalized = normalizeTag(part);
+            if (!normalized) {
+                return;
+            }
+            if (result.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
+                return;
+            }
+            result.push(normalized);
+        });
+        return result;
+    }
+
+    function setupTagsEditor(editorElement) {
+        const tagsHiddenInput = editorElement.querySelector(".js-tags-hidden");
+        const tagsTextInput = editorElement.querySelector(".js-tags-input");
+        const tagsChipsContainer = editorElement.querySelector(".js-tags-chips");
+        const ownerForm = editorElement.closest("form");
+
+        if (!tagsHiddenInput || !tagsTextInput || !tagsChipsContainer || !ownerForm) {
+            return;
+        }
+
+        let tags = parseTags(editorElement.dataset.initialTags || tagsHiddenInput.value || "");
+
+        function syncHidden() {
+            tagsHiddenInput.value = tags.join(", ");
+        }
+
+        function renderChips() {
+            tagsChipsContainer.innerHTML = "";
+            tags.forEach((tag, index) => {
+                const chip = document.createElement("span");
+                chip.className = "badge rounded-pill text-bg-light border";
+
+                const textNode = document.createElement("span");
+                textNode.textContent = tag;
+                chip.appendChild(textNode);
+
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "btn-close btn-close-sm ms-2";
+                removeButton.setAttribute("aria-label", "Удалить элемент");
+                removeButton.addEventListener("click", () => {
+                    tags.splice(index, 1);
+                    syncHidden();
+                    renderChips();
+                });
+                chip.appendChild(removeButton);
+
+                tagsChipsContainer.appendChild(chip);
+            });
+        }
+
+        function addFromInput() {
+            const parts = (tagsTextInput.value || "").split(",");
+            let changed = false;
+            parts.forEach((part) => {
+                const normalized = normalizeTag(part);
+                if (!normalized) {
+                    return;
+                }
+                if (tags.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
+                    return;
+                }
+                tags.push(normalized);
+                changed = true;
+            });
+            tagsTextInput.value = "";
+            if (changed) {
+                syncHidden();
+                renderChips();
+            }
+        }
+
+        tagsTextInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                addFromInput();
+            }
+        });
+
+        tagsTextInput.addEventListener("blur", () => {
+            addFromInput();
+        });
+
+        ownerForm.addEventListener("submit", () => {
+            addFromInput();
+        });
+
+        syncHidden();
+        renderChips();
+    }
+
+    const typeSelect = document.getElementById("characteristic-type-select");
+    document.querySelectorAll(".js-tags-editor").forEach((editor) => {
+        setupTagsEditor(editor);
+    });
+
+    if (typeSelect) {
+        const inputWrappers = {
+            text: document.getElementById("characteristic-input-text"),
+            number: document.getElementById("characteristic-input-number"),
+            boolean: document.getElementById("characteristic-input-boolean"),
+            tags: document.getElementById("characteristic-input-tags"),
+        };
+
+        const boolHidden = document.getElementById("characteristic-bool-hidden");
+        const boolCheckbox = document.getElementById("characteristic-bool-check");
+        const addCharacteristicForm = typeSelect.closest("form");
+
+        function switchInputByType() {
+            const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+            const valueKind = (selectedOption && selectedOption.dataset.valueKind) || "text";
+
+            Object.values(inputWrappers).forEach((el) => el.classList.add("d-none"));
+            (inputWrappers[valueKind] || inputWrappers.text).classList.remove("d-none");
+        }
+
+        boolCheckbox.addEventListener("change", () => {
+            boolHidden.value = boolCheckbox.checked ? "1" : "0";
+        });
+
+        typeSelect.addEventListener("change", switchInputByType);
+
+        addCharacteristicForm.addEventListener("submit", () => {
+            boolHidden.value = boolCheckbox.checked ? "1" : "0";
+        });
+
+        boolHidden.value = "0";
+        switchInputByType();
+    }
+});
+</script>
+{% endblock %}

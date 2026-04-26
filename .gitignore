@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Django
+*.sqlite3
+*.log
+local_settings.py
+db.sqlite3-journal
+
+# Static & Media (generated)
+/static/
+/media/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Sphinx docs build
+docs/_build/
+
+# Archive folder — keep folder, ignore contents
+services/архив/*
+!services/архив/.gitignore

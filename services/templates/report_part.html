@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Отчет: Запчасти{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <h1 class="h4 m-0">Отчет: Запчасти</h1>
+    <div class="d-flex gap-2">
+        {% if detail_view %}
+            <a href="{{ list_url }}" class="btn btn-outline-secondary">К списку</a>
+        {% endif %}
+        <form method="get" class="m-0">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="model_name" value="{{ model_name_filter }}">
+            <input type="hidden" name="brand" value="{{ brand_filter }}">
+            <input type="hidden" name="category" value="{{ category_filter }}">
+            <input type="hidden" name="device_type" value="{{ device_type_filter }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel_list" class="btn btn-outline-success">Экспорт списка</button>
+        </form>
+        <form method="get" class="m-0">
+            <input type="hidden" name="item" value="{% if selected_item %}{{ selected_item.id }}{% endif %}">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="model_name" value="{{ model_name_filter }}">
+            <input type="hidden" name="brand" value="{{ brand_filter }}">
+            <input type="hidden" name="category" value="{{ category_filter }}">
+            <input type="hidden" name="device_type" value="{{ device_type_filter }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel" class="btn btn-outline-primary" {% if not selected_item %}disabled{% endif %}>Экспорт выбранной</button>
+        </form>
+    </div>
+</div>
+
+{% if not detail_view %}
+<div class="card shadow-sm mb-4 no-print">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label">Поиск (наименование, сайт, артикул, бренд)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Техника</label>
+                <input type="text" name="model_name" class="form-control" value="{{ model_name_filter }}" placeholder="Фильтр по технике">
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Тип устройства</label>
+                <select name="device_type" class="form-select">
+                    <option value="">Все типы</option>
+                    {% for dt in all_device_types %}
+                        <option value="{{ dt }}" {% if device_type_filter == dt %}selected{% endif %}>{{ dt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Категория</label>
+                <select name="category" class="form-select">
+                    <option value="">Все категории</option>
+                    {% for c in all_categories %}
+                        <option value="{{ c.id }}" {% if category_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Бренд</label>
+                <select name="brand" class="form-select">
+                    <option value="">Все бренды</option>
+                    {% for b in all_brands %}
+                        <option value="{{ b.id }}" {% if brand_filter == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <div class="col-12 col-md-2">
+                {% include "includes/per_page_select.html" %}
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'report_part' %}?{{ sort_links.name }}" class="text-decoration-none">Наименование{% if sort == 'name' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_part' %}?{{ sort_links.site }}" class="text-decoration-none">Сайт{% if sort == 'site' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_part' %}?{{ sort_links.device_type }}" class="text-decoration-none">Тип{% if sort == 'device_type' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_part' %}?{{ sort_links.brand }}" class="text-decoration-none">Бренд{% if sort == 'brand' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_part' %}?{{ sort_links.category }}" class="text-decoration-none">Категория{% if sort == 'category' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Отчет</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{% if item.site %}<a href="{{ item.site }}" target="_blank" rel="noopener noreferrer">ссылка</a>{% else %}-{% endif %}</td>
+                        <td>{{ item.device_type|default:"-" }}</td>
+                        <td>{{ item.brand.name|default:"-" }}</td>
+                        <td>{{ item.category|default:"-" }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'report_part' %}?view=detail&item={{ item.id }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if model_name_filter %}&model_name={{ model_name_filter|urlencode }}{% endif %}{% if brand_filter %}&brand={{ brand_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if device_type_filter %}&device_type={{ device_type_filter|urlencode }}{% endif %}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}{% if page_obj %}&page={{ page_obj.number }}{% endif %}">Отчет</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center py-4">Записи не найдены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include "includes/pagination_controls.html" with pagination_wrapper_class="d-flex justify-content-between align-items-center mb-4 no-print" pagination_controls_class="btn-group" pagination_controls_role="group" pagination_button_class="btn btn-outline-secondary" %}
+{% endif %}
+
+{% if detail_view and selected_item %}
+    <div class="card shadow-sm print-sheet">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2 class="h5 m-0">Отчет по запчасти</h2>
+                    <div class="text-muted">{{ selected_item.name }}</div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();">Печать</button>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6"><strong>Артикул:</strong><br>{{ selected_item.sku|default:"-" }}</div>
+                <div class="col-12 col-md-6"><strong>Бренд:</strong><br>{{ selected_item.brand.name|default:"-" }}</div>
+                <div class="col-12 col-md-6"><strong>Категория:</strong><br>{{ selected_item.category|default:"-" }}</div>
+                <div class="col-12 col-md-6"><strong>Тип устройства:</strong><br>{{ selected_item.device_type|default:"-" }}</div>
+            </div>
+
+            <h3 class="h6">Привязки к технике</h3>
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0 align-middle">
+                    <thead><tr><th>Техника</th><th>Бренд</th><th>Категория</th><th>Артикул</th></tr></thead>
+                    <tbody>
+                    {% for model in linked_models %}
+                        <tr>
+                            <td>{{ model.name }}</td>
+                            <td>{{ model.brand.name|default:"-" }}</td>
+                            <td>{{ model.category|default:"-" }}</td>
+                            <td>{{ model.sku|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="text-center py-3">Привязки к технике отсутствуют.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Отчет: Документы ремонта{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <h1 class="h4 m-0">Отчет: Документы ремонта</h1>
+    <div class="d-flex gap-2">
+        {% if detail_view %}
+            <a href="{{ list_url }}" class="btn btn-outline-secondary">К списку</a>
+        {% endif %}
+        <form method="get" class="m-0">
+            <input type="hidden" name="document" value="{{ document_filter }}">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="organization" value="{{ organization_filter }}">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel" class="btn btn-outline-success" {% if not selected_document %}disabled{% endif %}>Экспорт в Excel</button>
+        </form>
+    </div>
+</div>
+
+{% if not detail_view %}
+<div class="card shadow-sm mb-4 no-print">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label">Поиск (организация, инженер, статус, неисправность, наименование, серийный, инвентарный)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст: организация, статус, серийный или инвентарный номер">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="id_organization">Организация</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm mb-1"
+                    id="organization_search"
+                    data-org-search
+                    data-org-target="#id_organization"
+                    placeholder="Поиск по наименованию"
+                    autocomplete="off"
+                >
+                <select name="organization" id="id_organization" class="form-select">
+                    <option value="">Все</option>
+                    {% for org in organizations %}
+                        <option value="{{ org.id }}" {% if organization_filter == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-select">
+                    <option value="">Все</option>
+                    {% for st in statuses %}
+                        <option value="{{ st.id }}" {% if status_filter == st.id|stringformat:"s" %}selected{% endif %}>{{ st.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <div class="col-12 col-md-2">
+                {% include "includes/per_page_select.html" %}
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.id }}" class="text-decoration-none">ID{% if sort == 'id' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.date }}" class="text-decoration-none">Дата{% if sort == 'date' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.organization }}" class="text-decoration-none">Организация{% if sort == 'organization' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.equipment }}" class="text-decoration-none">Техника клиента{% if sort == 'equipment' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.serviceman }}" class="text-decoration-none">Сервисный инженер{% if sort == 'serviceman' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.status }}" class="text-decoration-none">Статус{% if sort == 'status' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_repair_document' %}?{{ sort_links.status_edited_at }}" class="text-decoration-none">Дата ред. статуса{% if sort == 'status_edited_at' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Отчет</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in documents %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.date|date:"d.m.Y" }}</td>
+                        <td>{{ item.organization.name }}</td>
+                        <td>
+                            {% if item.client_equipment %}
+                                {{ item.client_equipment.product_model|default:"-" }}
+                                {% if item.client_equipment.serial_number %}<br><small class="text-muted">S/N: {{ item.client_equipment.serial_number }}</small>{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.serviceman.full_name }}</td>
+                        <td>{{ item.status.name }}</td>
+                        <td>{{ item.status_edited_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'report_repair_document' %}?view=detail&document={{ item.id }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if organization_filter %}&organization={{ organization_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}{% if page_obj %}&page={{ page_obj.number }}{% endif %}">Отчет</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">Документы не найдены.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include "includes/pagination_controls.html" with pagination_wrapper_class="d-flex justify-content-between align-items-center mb-4 no-print" pagination_controls_class="btn-group" pagination_controls_role="group" pagination_button_class="btn btn-outline-secondary" %}
+{% endif %}
+
+{% if detail_view and selected_document %}
+    <div class="card shadow-sm print-sheet">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2 class="h5 m-0">Документ ремонта #{{ selected_document.id }}</h2>
+                    <div class="text-muted">Дата: {{ selected_document.date|date:"d.m.Y" }}</div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();">Печать</button>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-4">
+                    <strong>Организация:</strong><br>
+                    {{ selected_document.organization.name }}
+                </div>
+                <div class="col-12 col-md-4">
+                    <strong>Сервисный инженер:</strong><br>
+                    {{ selected_document.serviceman.full_name|default:"-" }}
+                </div>
+                <div class="col-12 col-md-4">
+                    <strong>Статус:</strong><br>
+                    {{ selected_document.status.name|default:"-" }}
+                </div>
+                <div class="col-12 col-md-6">
+                    <strong>Техника клиента:</strong><br>
+                    {% if selected_document.client_equipment %}
+                        {{ selected_document.client_equipment.product_model|default:"-" }}
+                        {% if selected_document.client_equipment.serial_number %}<br><span class="text-muted">S/N: {{ selected_document.client_equipment.serial_number }}</span>{% endif %}
+                        {% if selected_document.client_equipment.inventory_number %}<br><span class="text-muted">Инв. №: {{ selected_document.client_equipment.inventory_number }}</span>{% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+                <div class="col-12 col-md-6">
+                    <strong>Место ремонта:</strong><br>
+                    {{ selected_document.get_repair_place_display }}
+                </div>
+                <div class="col-12"><strong>Неисправность:</strong><br>{{ selected_document.malfunction|linebreaksbr|default:"-" }}</div>
+                <div class="col-12"><strong>Выполненные работы (текст):</strong><br>{{ selected_document.work_performed|linebreaksbr|default:"-" }}</div>
+                <div class="col-12"><strong>Примечание:</strong><br>{{ selected_document.note|linebreaksbr|default:"-" }}</div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header py-2"><strong>Работы</strong></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0 align-middle">
+                            <thead><tr><th>Код</th><th>Наименование</th><th>Цена</th><th>Количество</th></tr></thead>
+                            <tbody>
+                            {% for link in linked_works %}
+                                <tr>
+                                    <td>{{ link.work.code }}</td>
+                                    <td>{{ link.work.name }}</td>
+                                    <td>{{ link.work.unit_price }}</td>
+                                    <td>{{ link.quantity }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center py-3">Работы не добавлены.</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header py-2"><strong>Запчасти</strong></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0 align-middle">
+                            <thead><tr><th>Наименование</th><th>Артикул</th><th>Бренд</th><th>Всего</th><th>Ручное</th><th>Из работ</th></tr></thead>
+                            <tbody>
+                            {% for link in linked_parts %}
+                                <tr>
+                                    <td>{{ link.part.name }}</td>
+                                    <td>{{ link.part.sku|default:"-" }}</td>
+                                    <td>{{ link.part.brand.name|default:"-" }}</td>
+                                    <td>{{ link.quantity }}</td>
+                                    <td>{{ link.manual_quantity }}</td>
+                                    <td>{{ link.work_quantity }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="6" class="text-center py-3">Запчасти не добавлены.</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header py-2"><strong>Расходные материалы</strong></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0 align-middle">
+                            <thead><tr><th>Наименование</th><th>Артикул</th><th>Бренд</th><th>Всего</th><th>Ручное</th><th>Из работ</th></tr></thead>
+                            <tbody>
+                            {% for link in linked_consumables %}
+                                <tr>
+                                    <td>{{ link.consumable.name }}</td>
+                                    <td>{{ link.consumable.sku|default:"-" }}</td>
+                                    <td>{{ link.consumable.brand.name|default:"-" }}</td>
+                                    <td>{{ link.quantity }}</td>
+                                    <td>{{ link.manual_quantity }}</td>
+                                    <td>{{ link.work_quantity }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="6" class="text-center py-3">Расходные материалы не добавлены.</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

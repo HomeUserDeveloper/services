@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if editing_document %}Документ отгрузки #{{ editing_document.id }}{% else %}Новый документ отгрузки{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">
+        {% if editing_document %}
+            Документ отгрузки #{{ editing_document.id }}
+        {% else %}
+            Новый документ отгрузки
+        {% endif %}
+    </h1>
+    <a href="{{ back_url }}" class="btn btn-outline-secondary">К списку</a>
+</div>
+
+<form method="post" class="card mb-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save" />
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label" for="id_date">Дата</label>
+                {{ form.date }}
+                {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="id_serviceman">Сервисный инженер</label>
+                {{ form.serviceman }}
+                {% if form.serviceman.errors %}<div class="text-danger small mt-1">{{ form.serviceman.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="id_organization">Организация</label>
+                {{ form.organization }}
+                {% if form.organization.errors %}<div class="text-danger small mt-1">{{ form.organization.errors|join:", " }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </div>
+</form>
+
+{% if editing_document %}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="search_serial" />
+            <div class="col-md-6">
+                <label class="form-label" for="serial_query">Поиск по серийному номеру</label>
+                <input
+                    type="text"
+                    id="serial_query"
+                    name="serial_query"
+                    class="form-control"
+                    value="{{ serial_query }}"
+                    placeholder="Введите серийный номер"
+                />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Найти и добавить</button>
+            </div>
+        </form>
+        <div class="form-text mt-2">
+            Если техника не найдена, новая запись не создается.
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Серийный номер</th>
+                <th>Инвентарный номер</th>
+                <th>Счетчик</th>
+                <th style="width: 260px;">Ремонт</th>
+                <th style="width: 120px;" class="text-end">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for link in linked_equipment %}
+            <tr>
+                <td>{{ link.client_equipment.product_model.name|default:"-" }}</td>
+                <td>{{ link.client_equipment.serial_number|default:"-" }}</td>
+                <td>{{ link.client_equipment.inventory_number|default:"-" }}</td>
+                <td>{{ link.client_equipment.print_counter|default:"-" }}</td>
+                <td>
+                    {% if link.repair_document %}
+                        <a
+                            href="{% url 'repair_document_edit' link.repair_document.id %}"
+                            class="btn btn-sm btn-outline-secondary"
+                            target="_blank"
+                        >
+                            Открыть ремонт #{{ link.repair_document.id }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">Не создан</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_equipment" />
+                        <input type="hidden" name="link_id" value="{{ link.id }}" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Техника не добавлена.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

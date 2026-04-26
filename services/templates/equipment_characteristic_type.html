@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Характеристики техники{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h1 class="h5 m-0">
+                    {% if editing_type %}Редактирование типа характеристики{% else %}Новый тип характеристики{% endif %}
+                </h1>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if editing_type %}
+                        <input type="hidden" name="type_id" value="{{ editing_type.id }}">
+                    {% endif %}
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="dir" value="{{ direction }}">
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        {% if editing_type %}
+                            <a class="btn btn-outline-secondary" href="{% url 'equipment_characteristic_type' %}">Новая запись</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 class="h5 m-0">Типы характеристик техники</h2>
+            </div>
+            <div class="card-body border-bottom">
+                <form method="get" class="row g-2 align-items-end">
+                    <div class="col-12 col-md-9">
+                        <label class="form-label">Поиск (код, название, тип значения)</label>
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary"
+                                title="Очистить поиск"
+                                onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();"
+                            >X</button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-1">
+                        {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+                    </div>
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th><a href="{% url 'equipment_characteristic_type' %}?{{ sort_links.sort_order }}" class="text-decoration-none">Порядок{% if sort == 'sort_order' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th><a href="{% url 'equipment_characteristic_type' %}?{{ sort_links.code }}" class="text-decoration-none">Код{% if sort == 'code' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th><a href="{% url 'equipment_characteristic_type' %}?{{ sort_links.name }}" class="text-decoration-none">Название{% if sort == 'name' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th><a href="{% url 'equipment_characteristic_type' %}?{{ sort_links.value_kind }}" class="text-decoration-none">Тип значения{% if sort == 'value_kind' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in types %}
+                            <tr>
+                                <td>{{ item.sort_order }}</td>
+                                <td>{{ item.code }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.get_value_kind_display }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-primary" href="{% url 'equipment_characteristic_type' %}?edit={{ item.id }}&q={{ query|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Редактировать</a>
+                                        <form method="post" onsubmit="return confirm('Удалить тип характеристики «{{ item.name }}»?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="type_id" value="{{ item.id }}">
+                                            <input type="hidden" name="q" value="{{ query }}">
+                                            <input type="hidden" name="per_page" value="{{ per_page }}">
+                                            <input type="hidden" name="sort" value="{{ sort }}">
+                                            <input type="hidden" name="dir" value="{{ direction }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">Справочник пуст.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% include "includes/pagination_controls.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

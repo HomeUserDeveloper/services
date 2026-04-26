@@ -1,0 +1,6 @@
+<label class="form-label">{{ per_page_label|default:'На странице' }}</label>
+<select name="per_page" class="form-select" onchange="this.form.submit()">
+    {% for option in per_page_options %}
+        <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}{% if per_page_option_suffix %} {{ per_page_option_suffix }}{% endif %}</option>
+    {% endfor %}
+</select>

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger-subtle">
+                <h1 class="h5 m-0">Подтверждение удаления</h1>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Удалить {{ object_label }} <strong>{{ item }}</strong>?</p>
+                <p class="text-muted mb-4">Действие нельзя отменить.</p>
+
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="q" value="{{ q }}">
+                    <input type="hidden" name="status" value="{{ status }}">
+                    <input type="hidden" name="locality" value="{{ locality }}">
+                    <input type="hidden" name="code" value="{{ code }}">
+                    <input type="hidden" name="group" value="{{ group }}">
+                    <input type="hidden" name="brand" value="{{ brand }}">
+                    <input type="hidden" name="category" value="{{ category }}">
+                    <input type="hidden" name="device_type" value="{{ device_type }}">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="dir" value="{{ dir }}">
+                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                    <a href="{{ back_url }}" class="btn btn-outline-secondary">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

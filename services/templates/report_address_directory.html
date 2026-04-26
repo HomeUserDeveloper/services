@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Отчет: Справочник Адреса{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <h1 class="h4 m-0">Отчет: Справочник Адреса</h1>
+    <div class="d-flex gap-2">
+        {% if detail_view %}
+            <a href="{{ list_url }}" class="btn btn-outline-secondary">К списку</a>
+        {% endif %}
+        <form method="get" class="m-0">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel_list" class="btn btn-outline-success">Экспорт списка</button>
+        </form>
+        <form method="get" class="m-0">
+            <input type="hidden" name="item" value="{% if selected_item %}{{ selected_item.id }}{% endif %}">
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <button type="submit" name="export" value="excel" class="btn btn-outline-primary" {% if not selected_item %}disabled{% endif %}>Экспорт выбранной</button>
+        </form>
+    </div>
+</div>
+
+{% if not detail_view %}
+<div class="card shadow-sm mb-4 no-print">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-8">
+                <label class="form-label">Поиск (населенный пункт, улица, дом, индекс, примечание)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <div class="col-12 col-md-2">
+                {% include "includes/per_page_select.html" %}
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'report_address_directory' %}?{{ sort_links.locality }}" class="text-decoration-none">Населенный пункт{% if sort == 'locality' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_address_directory' %}?{{ sort_links.street }}" class="text-decoration-none">Улица{% if sort == 'street' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_address_directory' %}?{{ sort_links.house }}" class="text-decoration-none">Дом{% if sort == 'house' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'report_address_directory' %}?{{ sort_links.postal_code }}" class="text-decoration-none">Индекс{% if sort == 'postal_code' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Отчет</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.locality }}</td>
+                        <td>{{ item.street|default:"-" }}</td>
+                        <td>{{ item.house|default:"-" }}</td>
+                        <td>{{ item.postal_code|default:"-" }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="{% url 'report_address_directory' %}?view=detail&item={{ item.id }}{% if query %}&q={{ query|urlencode }}{% endif %}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}{% if page_obj %}&page={{ page_obj.number }}{% endif %}">Отчет</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">Записи не найдены.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% include "includes/pagination_controls.html" with pagination_wrapper_class="d-flex justify-content-between align-items-center mb-4 no-print" pagination_controls_class="btn-group" pagination_controls_role="group" pagination_button_class="btn btn-outline-secondary" %}
+{% endif %}
+
+{% if detail_view and selected_item %}
+    <div class="card shadow-sm print-sheet">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2 class="h5 m-0">Отчет по адресу</h2>
+                    <div class="text-muted">{{ selected_item }}</div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();">Печать</button>
+            </div>
+            <div class="row g-3">
+                <div class="col-12 col-md-4"><strong>Индекс:</strong><br>{{ selected_item.postal_code|default:"-" }}</div>
+                <div class="col-12 col-md-4"><strong>Населенный пункт:</strong><br>{{ selected_item.locality|default:"-" }}</div>
+                <div class="col-12 col-md-4"><strong>Улица:</strong><br>{{ selected_item.street|default:"-" }}</div>
+                <div class="col-12 col-md-3"><strong>Дом:</strong><br>{{ selected_item.house|default:"-" }}</div>
+                <div class="col-12 col-md-3"><strong>Корпус:</strong><br>{{ selected_item.building|default:"-" }}</div>
+                <div class="col-12 col-md-3"><strong>Строение:</strong><br>{{ selected_item.structure|default:"-" }}</div>
+                <div class="col-12 col-md-3"><strong>Этаж:</strong><br>{{ selected_item.floor|default:"-" }}</div>
+                <div class="col-12 col-md-4"><strong>Комната:</strong><br>{{ selected_item.room|default:"-" }}</div>
+                <div class="col-12"><strong>Примечание:</strong><br>{{ selected_item.note|linebreaksbr|default:"-" }}</div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

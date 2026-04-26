@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Статусы{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h1 class="h5 m-0">
+                    {% if editing_status %}Редактирование статуса{% else %}Новый статус{% endif %}
+                </h1>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if editing_status %}
+                        <input type="hidden" name="status_id" value="{{ editing_status.id }}">
+                    {% endif %}
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="code" value="{{ code_filter }}">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="dir" value="{{ direction }}">
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        {% if editing_status %}
+                            <a class="btn btn-outline-secondary" href="{% url 'status_directory' %}">Новая запись</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 class="h5 m-0">Статусы</h2>
+            </div>
+            <div class="card-body border-bottom">
+                <form method="get" class="row g-2 align-items-end">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label">Поиск (код, статус, описание)</label>
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary"
+                                title="Очистить поиск"
+                                onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();"
+                            >X</button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label">Код</label>
+                        <select name="code" class="form-select">
+                            <option value="">Все коды</option>
+                            {% for code in all_codes %}
+                                <option value="{{ code }}" {% if code_filter == code|stringformat:"s" %}selected{% endif %}>{{ code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-1">
+                        {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+                    </div>
+                    <div class="col-12 col-md-1 d-grid">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th><a href="{% url 'status_directory' %}?{{ sort_links.code }}" class="text-decoration-none">Код{% if sort == 'code' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th><a href="{% url 'status_directory' %}?{{ sort_links.name }}" class="text-decoration-none">Статус{% if sort == 'name' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th><a href="{% url 'status_directory' %}?{{ sort_links.description }}" class="text-decoration-none">Описание{% if sort == 'description' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in statuses %}
+                            <tr>
+                                <td>{{ item.code }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.description|default:"-" }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-primary" href="{% url 'status_directory' %}?edit={{ item.id }}&q={{ query|urlencode }}&code={{ code_filter|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Редактировать</a>
+                                        <a class="btn btn-sm btn-outline-danger" href="{% url 'status_directory_delete' item.id %}?q={{ query|urlencode }}&code={{ code_filter|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Удалить</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">Справочник пуст.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% include "includes/pagination_controls.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+:root {
+    --bs-body-bg: #fffde8;
+    --bs-body-color: #000000;
+    --bs-primary: #003cff;
+    --bs-primary-rgb: 0, 60, 255;
+    --bs-link-color: #003cff;
+    --bs-link-hover-color: #001b75;
+    --bs-border-color: #000000;
+    --bs-secondary-bg: #ffffff;
+    --bs-tertiary-bg: #fff8a6;
+}
+
+html {
+    font-size: 19px;
+}
+
+body {
+    background: #fffde8;
+    color: #000000;
+    line-height: 1.65;
+}
+
+.navbar.bg-dark {
+    background: #000000 !important;
+}
+
+.navbar .nav-link,
+.navbar .navbar-brand,
+.navbar .small,
+.navbar strong {
+    color: #ffffff !important;
+}
+
+.card,
+.table,
+.dropdown-menu,
+.form-control,
+.form-select,
+.btn {
+    border-radius: 0.4rem;
+    border-width: 2px;
+}
+
+.table {
+    --bs-table-striped-bg: #fff7b8;
+    --bs-table-color: #000000;
+}
+
+.btn,
+.form-control,
+.form-select {
+    min-height: 3rem;
+    font-weight: 600;
+}
+
+a {
+    text-decoration: underline;
+}

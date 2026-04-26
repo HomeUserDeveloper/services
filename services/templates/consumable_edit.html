@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing_consumable %}Редактирование расходного материала{% else %}Новый расходный материал{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">{% if editing_consumable %}Редактирование расходного материала{% else %}Новый расходный материал{% endif %}</h1>
+    <div class="d-flex gap-2">
+        {% if editing_consumable %}
+            <a class="btn btn-outline-primary" href="{% url 'consumable_product_models' editing_consumable.id %}?q={{ q|urlencode }}&brand={{ brand }}&category={{ category }}&device_type={{ device_type|urlencode }}&sort={{ sort }}&dir={{ dir }}">Связи с техникой</a>
+        {% endif %}
+        {% if editing_consumable %}
+            <a class="btn btn-outline-danger" href="{% url 'consumable_delete' editing_consumable.id %}?q={{ q|urlencode }}&brand={{ brand }}&category={{ category }}&device_type={{ device_type|urlencode }}&sort={{ sort }}&dir={{ dir }}">Удалить</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if editing_consumable %}
+                <input type="hidden" name="consumable_id" value="{{ editing_consumable.id }}">
+            {% endif %}
+            <input type="hidden" name="q" value="{{ q }}">
+            <input type="hidden" name="brand" value="{{ brand }}">
+            <input type="hidden" name="category" value="{{ category }}">
+            <input type="hidden" name="device_type" value="{{ device_type }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ dir }}">
+            <input type="hidden" name="relation_q" value="{{ relation_query }}">
+
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-12 col-lg-6">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                {% if editing_consumable %}
+                    <a class="btn btn-outline-primary" href="{% url 'consumable_new' %}?q={{ q|urlencode }}&brand={{ brand }}&category={{ category }}&device_type={{ device_type|urlencode }}&sort={{ sort }}&dir={{ dir }}">Новая запись</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if editing_consumable %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Связанная техника</h2>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Техника</th>
+                        <th>Бренд</th>
+                        <th>Категория</th>
+                        <th>Артикул</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for link in linked_relations %}
+                        <tr>
+                            <td>{{ link.product_model.name }}</td>
+                            <td>{{ link.product_model.brand.name|default:"-" }}</td>
+                            <td>{{ link.product_model.category|default:"-" }}</td>
+                            <td>{{ link.product_model.sku|default:"-" }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Удалить связь с техникой «{{ link.product_model.name }}»?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_relation">
+                                    <input type="hidden" name="consumable_id" value="{{ editing_consumable.id }}">
+                                    <input type="hidden" name="relation_id" value="{{ link.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="brand" value="{{ brand }}">
+                                    <input type="hidden" name="category" value="{{ category }}">
+                                    <input type="hidden" name="device_type" value="{{ device_type }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="relation_q" value="{{ relation_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить связь</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-3">Связей пока нет.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h2 class="h5 m-0">Добавить связь (поиск техники)</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-10">
+                    <label class="form-label">Поиск техники (наименование, артикул, бренд, категория)</label>
+                    <div class="input-group">
+                        <input type="text" name="relation_q" class="form-control" value="{{ relation_query }}" placeholder="Введите текст для поиска техники">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'relation_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="brand" value="{{ brand }}">
+                <input type="hidden" name="category" value="{{ category }}">
+                <input type="hidden" name="device_type" value="{{ device_type }}">
+                <input type="hidden" name="sort" value="{{ sort }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Техника</th>
+                        <th>Бренд</th>
+                        <th>Категория</th>
+                        <th>Артикул</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for model in relation_candidates %}
+                        <tr>
+                            <td>{{ model.name }}</td>
+                            <td>{{ model.brand.name|default:"-" }}</td>
+                            <td>{{ model.category|default:"-" }}</td>
+                            <td>{{ model.sku|default:"-" }}</td>
+                            <td>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="add_relation">
+                                    <input type="hidden" name="consumable_id" value="{{ editing_consumable.id }}">
+                                    <input type="hidden" name="product_model_id" value="{{ model.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="brand" value="{{ brand }}">
+                                    <input type="hidden" name="category" value="{{ category }}">
+                                    <input type="hidden" name="device_type" value="{{ device_type }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="relation_q" value="{{ relation_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Связать</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-3">Нет техники для добавления по текущему поиску.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

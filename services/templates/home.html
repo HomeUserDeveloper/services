@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="text-center">
+        <img src="{% url 'home_logo' %}" alt="Логотип" class="img-fluid" style="width: 100%; max-width: 100vw; max-height: 85vh; height: auto; object-fit: contain;">
+    </div>
+</div>
+{% endblock %}
