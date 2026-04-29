@@ -8153,7 +8153,7 @@ def planned_visit(request):
         target_id = request.POST.get("visit_id")
         post_query = request.POST.get("q", query).strip()
         post_serviceman = request.POST.get("serviceman", serviceman_filter).strip()
-        post_status = request.POST.get("status_filter", status_filter).strip()
+        post_status = request.POST.get("status", status_filter).strip()
         post_per_page = request.POST.get("per_page", per_page).strip().lower()
         post_sort = request.POST.get("sort", sort).strip() or "date"
         post_direction = request.POST.get("dir", direction).strip() or "desc"
