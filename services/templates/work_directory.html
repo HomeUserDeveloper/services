@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Работы{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Работы</h1>
+    <a class="btn btn-primary" href="{% url 'work_directory_new' %}?q={{ query|urlencode }}&component={{ component_filter }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Новая запись</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-6">
+                <label class="form-label">Поиск (код, наименование)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите код или наименование">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label">Фильтр по подчиненным строкам</label>
+                <select name="component" class="form-select">
+                    <option value="" {% if not component_filter %}selected{% endif %}>Все</option>
+                    <option value="with_consumables" {% if component_filter == 'with_consumables' %}selected{% endif %}>Есть расходные материалы</option>
+                    <option value="with_parts" {% if component_filter == 'with_parts' %}selected{% endif %}>Есть запчасти</option>
+                    <option value="with_any" {% if component_filter == 'with_any' %}selected{% endif %}>Есть любые подчиненные строки</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-1">
+                {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'work_directory' %}?{{ sort_links.code }}" class="text-decoration-none">Код{% if sort == 'code' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'work_directory' %}?{{ sort_links.name }}" class="text-decoration-none">Наименование{% if sort == 'name' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'work_directory' %}?{{ sort_links.unit_price }}" class="text-decoration-none">Цена за единицу{% if sort == 'unit_price' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'work_directory' %}?{{ sort_links.consumables_count }}" class="text-decoration-none">Расходники{% if sort == 'consumables_count' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'work_directory' %}?{{ sort_links.parts_count }}" class="text-decoration-none">Запчасти{% if sort == 'parts_count' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in works %}
+                    <tr>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.unit_price }}</td>
+                        <td>{{ item.consumables_count }}</td>
+                        <td>{{ item.parts_count }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'work_directory_edit' item.id %}?q={{ query|urlencode }}&component={{ component_filter }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Редактировать</a>
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'work_directory_delete' item.id %}?q={{ query|urlencode }}&component={{ component_filter }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Удалить</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">Справочник пуст.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination_controls.html" %}
+</div>
+{% endblock %}

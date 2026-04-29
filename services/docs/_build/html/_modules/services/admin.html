@@ -1,0 +1,213 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>services.admin &mdash; Services Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Services Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/views.html">Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/forms.html">Forms</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Services Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">services.admin</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for services.admin</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib</span><span class="w"> </span><span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.admin.sites</span><span class="w"> </span><span class="kn">import</span> <span class="n">NotRegistered</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.admin</span><span class="w"> </span><span class="kn">import</span> <span class="n">GroupAdmin</span><span class="p">,</span> <span class="n">UserAdmin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Lower</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Organization</span><span class="p">,</span> <span class="n">OrganizationContact</span>
+
+
+<div class="viewcode-block" id="OrganizationContactInline">
+<a class="viewcode-back" href="../../services.html#services.admin.OrganizationContactInline">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OrganizationContactInline</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">TabularInline</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">OrganizationContact</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CaseInsensitiveSearchAdminMixin">
+<a class="viewcode-back" href="../../services.html#services.admin.CaseInsensitiveSearchAdminMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaseInsensitiveSearchAdminMixin</span><span class="p">:</span>
+    <span class="n">search_config</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+
+<div class="viewcode-block" id="CaseInsensitiveSearchAdminMixin.get_search_results">
+<a class="viewcode-back" href="../../services.html#services.admin.CaseInsensitiveSearchAdminMixin.get_search_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_search_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queryset</span><span class="p">,</span> <span class="n">search_term</span><span class="p">):</span>
+        <span class="n">queryset</span><span class="p">,</span> <span class="n">use_distinct</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_search_results</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">queryset</span><span class="p">,</span> <span class="n">search_term</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">search_term</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_config</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">queryset</span><span class="p">,</span> <span class="n">use_distinct</span>
+
+        <span class="n">lowered_term</span> <span class="o">=</span> <span class="n">search_term</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">annotations</span> <span class="o">=</span> <span class="p">{</span><span class="n">alias</span><span class="p">:</span> <span class="n">Lower</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">alias</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_config</span><span class="p">}</span>
+        <span class="n">annotated_queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="o">**</span><span class="n">annotations</span><span class="p">)</span>
+
+        <span class="n">condition</span> <span class="o">=</span> <span class="n">Q</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">alias</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_config</span><span class="p">:</span>
+            <span class="n">condition</span> <span class="o">|=</span> <span class="n">Q</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">alias</span><span class="si">}</span><span class="s2">__contains&quot;</span><span class="p">:</span> <span class="n">lowered_term</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">annotated_queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">(),</span> <span class="kc">True</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="OrganizationAdmin">
+<a class="viewcode-back" href="../../services.html#services.admin.OrganizationAdmin">[docs]</a>
+<span class="nd">@admin</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Organization</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OrganizationAdmin</span><span class="p">(</span><span class="n">CaseInsensitiveSearchAdminMixin</span><span class="p">,</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;inn_kpp&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;updated_at&quot;</span><span class="p">)</span>
+    <span class="n">list_filter</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;inn_kpp&quot;</span><span class="p">,</span> <span class="s2">&quot;ogrn_passport&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">)</span>
+    <span class="n">search_config</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;name_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;inn_kpp_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;inn_kpp&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;ogrn_passport_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;ogrn_passport&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;phone_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;email_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">inlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">OrganizationContactInline</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="OrganizationContactAdmin">
+<a class="viewcode-back" href="../../services.html#services.admin.OrganizationContactAdmin">[docs]</a>
+<span class="nd">@admin</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">OrganizationContact</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OrganizationContactAdmin</span><span class="p">(</span><span class="n">CaseInsensitiveSearchAdminMixin</span><span class="p">,</span> <span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;organization&quot;</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">,</span> <span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+    <span class="n">list_filter</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;organization&quot;</span><span class="p">,)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">,</span> <span class="s2">&quot;organization__name&quot;</span><span class="p">)</span>
+    <span class="n">search_config</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;name_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;position_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;phone_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;phone&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;organization_name_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;organization__name&quot;</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">NotRegistered</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">Group</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">NotRegistered</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="CustomUserAdmin">
+<a class="viewcode-back" href="../../services.html#services.admin.CustomUserAdmin">[docs]</a>
+<span class="nd">@admin</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomUserAdmin</span><span class="p">(</span><span class="n">CaseInsensitiveSearchAdminMixin</span><span class="p">,</span> <span class="n">UserAdmin</span><span class="p">):</span>
+    <span class="n">search_config</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;username_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;username&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;first_name_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;first_name&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;last_name_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;last_name&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;email_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CustomGroupAdmin">
+<a class="viewcode-back" href="../../services.html#services.admin.CustomGroupAdmin">[docs]</a>
+<span class="nd">@admin</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Group</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomGroupAdmin</span><span class="p">(</span><span class="n">CaseInsensitiveSearchAdminMixin</span><span class="p">,</span> <span class="n">GroupAdmin</span><span class="p">):</span>
+    <span class="n">search_config</span> <span class="o">=</span> <span class="p">((</span><span class="s2">&quot;name_lc&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">),)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Services | Дата формирования: 26.04.2026 12:43.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

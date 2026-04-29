@@ -1,0 +1,13 @@
+{% if page_obj %}
+<div class="{{ pagination_wrapper_class|default:'card-body border-top d-flex justify-content-between align-items-center' }}">
+    <div class="{{ pagination_text_class|default:'text-muted small' }}">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</div>
+    <div class="{{ pagination_controls_class|default:'d-flex gap-2' }}"{% if pagination_controls_role %} role="{{ pagination_controls_role }}"{% endif %}>
+        {% if page_obj.has_previous %}
+            <a class="{{ pagination_button_class|default:'btn btn-sm btn-outline-secondary' }}" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a class="{{ pagination_button_class|default:'btn btn-sm btn-outline-secondary' }}" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">Вперед</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing_document %}Редактирование документа ремонта{% else %}Новый документ ремонта{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">{% if editing_document %}Редактирование документа ремонта #{{ editing_document.id }}{% else %}Новый документ ремонта{% endif %}</h1>
+    <div class="d-flex gap-2">
+        {% if editing_document %}
+            <a class="btn btn-outline-danger" href="{% url 'repair_document_delete' editing_document.id %}">Удалить</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+
+            <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-2">
+                    <label class="form-label" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-2">
+                    <label class="form-label">{{ form.repair_place.label }}</label>
+                    {% with selected_repair_place=form.repair_place.value|default:'office' %}
+                    <div class="btn-group w-100" role="group" aria-label="Место ремонта">
+                        {% for value, label in form.fields.repair_place.choices %}
+                            <input
+                                type="radio"
+                                class="btn-check"
+                                name="{{ form.repair_place.html_name }}"
+                                id="id_repair_place_{{ forloop.counter0 }}"
+                                value="{{ value }}"
+                                {% if selected_repair_place == value %}checked{% endif %}
+                            >
+                            <label class="btn btn-outline-primary" for="id_repair_place_{{ forloop.counter0 }}">{{ label }}</label>
+                        {% endfor %}
+                    </div>
+                    {% endwith %}
+                    {% if form.repair_place.errors %}<div class="text-danger small mt-1">{{ form.repair_place.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="{{ form.service_center.id_for_label }}">{{ form.service_center.label }}</label>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        id="service_center_search"
+                        placeholder="Поиск по наименованию"
+                        autocomplete="off"
+                    >
+                    {{ form.service_center }}
+                    {% if form.service_center.errors %}<div class="text-danger small mt-1">{{ form.service_center.errors|striptags }}</div>{% endif %}
+                    <div class="form-text">После выбора сервисного центра страница перезагрузится для подстановки адресов.</div>
+                </div>
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="{{ form.service_center_address.id_for_label }}">{{ form.service_center_address.label }}</label>
+                    {{ form.service_center_address }}
+                    {% if form.service_center_address.errors %}<div class="text-danger small mt-1">{{ form.service_center_address.errors|striptags }}</div>{% endif %}
+                    <div class="form-text">По умолчанию выбран главный офис сервисного центра, при наличии.</div>
+                </div>
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="{{ form.organization.id_for_label }}">{{ form.organization.label }}</label>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        id="organization_search"
+                        placeholder="Поиск по наименованию"
+                        autocomplete="off"
+                    >
+                    {{ form.organization }}
+                    {% if form.organization.errors %}<div class="text-danger small mt-1">{{ form.organization.errors|striptags }}</div>{% endif %}
+                    <div class="form-text">После выбора организации страница перезагрузится для подбора техники клиента.</div>
+                </div>
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="{{ form.serviceman.id_for_label }}">{{ form.serviceman.label }}</label>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        id="serviceman_search"
+                        placeholder="Поиск по ФИО"
+                        autocomplete="off"
+                    >
+                    {{ form.serviceman }}
+                    {% if form.serviceman.errors %}<div class="text-danger small mt-1">{{ form.serviceman.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                        <input
+                            type="text"
+                            class="form-control form-control-sm mb-1"
+                            id="status_search"
+                            placeholder="Поиск по коду или наименованию"
+                            autocomplete="off"
+                        >
+                        {{ form.status }}
+                    {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors|striptags }}</div>{% endif %}
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+
+            {% if editing_document %}
+                <div class="alert alert-warning py-2 mt-3 mb-0" role="alert">
+                    При изменении статуса будет создана новая запись ремонта для сохранения истории.
+                </div>
+            {% endif %}
+
+            <hr class="my-4">
+            <h2 class="h5">Техника клиента (одна организация - много единиц техники)</h2>
+            <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-8">
+                    <label class="form-label" for="{{ form.client_equipment.id_for_label }}">{{ form.client_equipment.label }}</label>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        id="client_equipment_search"
+                        placeholder="Поиск по наименованию, серийному или инвентарному номеру"
+                        autocomplete="off"
+                    >
+                    {{ form.client_equipment }}
+                    {% if form.client_equipment.errors %}<div class="text-danger small mt-1">{{ form.client_equipment.errors|striptags }}</div>{% endif %}
+                    <div class="form-text">Список техники ограничен выбранной организацией.</div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label class="form-label">Дата редактирования статуса</label>
+                    <input type="text" class="form-control" value="{% if editing_document %}{{ editing_document.status_edited_at|date:'d.m.Y H:i:s' }}{% else %}будет установлено автоматически{% endif %}" readonly>
+                    <div class="form-text">Поле заполняется автоматически и не редактируется вручную.</div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.malfunction.id_for_label }}">{{ form.malfunction.label }}</label>
+                    {{ form.malfunction }}
+                    {% if form.malfunction.errors %}<div class="text-danger small mt-1">{{ form.malfunction.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.work_performed.id_for_label }}">{{ form.work_performed.label }}</label>
+                    {{ form.work_performed }}
+                    {% if form.work_performed.errors %}<div class="text-danger small mt-1">{{ form.work_performed.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>
+                    {{ form.note }}
+                    {% if form.note.errors %}<div class="text-danger small mt-1">{{ form.note.errors|striptags }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                {% if editing_document %}
+                    <a class="btn btn-outline-primary" href="{% url 'repair_document_new' %}">Новый документ</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if editing_document %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Работы</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-xl-5">
+                    <label class="form-label">Поиск по справочнику работ</label>
+                    <div class="input-group">
+                        <input type="text" name="works_q" class="form-control" value="{{ works_query }}" placeholder="Код или наименование">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'works_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 col-xl-3">
+                    <label class="form-label">Фильтр состава</label>
+                    <select name="works_filter" class="form-select">
+                        <option value="all" {% if works_filter == 'all' %}selected{% endif %}>Все работы</option>
+                        <option value="with_any" {% if works_filter == 'with_any' %}selected{% endif %}>Есть расходники или запчасти</option>
+                        <option value="with_parts" {% if works_filter == 'with_parts' %}selected{% endif %}>Только с запчастями</option>
+                        <option value="with_consumables" {% if works_filter == 'with_consumables' %}selected{% endif %}>Только с расходниками</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4 col-xl-2">
+                    <label class="form-label">Сортировка</label>
+                    <select name="works_sort" class="form-select">
+                        <option value="code" {% if works_sort == 'code' %}selected{% endif %}>По коду</option>
+                        <option value="name" {% if works_sort == 'name' %}selected{% endif %}>По наименованию</option>
+                        <option value="price" {% if works_sort == 'price' %}selected{% endif %}>По цене</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4 col-xl-2">
+                    <label class="form-label">Направление</label>
+                    <select name="works_dir" class="form-select">
+                        <option value="asc" {% if works_direction == 'asc' %}selected{% endif %}>По возрастанию</option>
+                        <option value="desc" {% if works_direction == 'desc' %}selected{% endif %}>По убыванию</option>
+                    </select>
+                </div>
+                <div class="col-12 col-xl-12 d-grid d-xl-flex justify-content-xl-end">
+                    <button type="submit" class="btn btn-outline-primary">Применить</button>
+                </div>
+                {% if parts_query %}<input type="hidden" name="parts_q" value="{{ parts_query }}">{% endif %}
+                {% if consumables_query %}<input type="hidden" name="cons_q" value="{{ consumables_query }}">{% endif %}
+            </form>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="post" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_work">
+                <input type="hidden" name="works_q" value="{{ works_query }}">
+                <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                <div class="col-12 col-md-8">
+                    <label class="form-label" for="{{ work_form.work.id_for_label }}">Работа</label>
+                    {{ work_form.work }}
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label" for="work_quantity">Количество</label>
+                    <input id="work_quantity" type="number" min="1" name="work_quantity" class="form-control" value="1">
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-success">Добавить</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead><tr><th><a class="link-dark text-decoration-none" href="?{{ works_sort_links.code }}">Код</a></th><th><a class="link-dark text-decoration-none" href="?{{ works_sort_links.name }}">Работа</a></th><th><a class="link-dark text-decoration-none" href="?{{ works_sort_links.price }}">Цена</a></th><th>Количество</th><th>Действия</th></tr></thead>
+                    <tbody>
+                    {% for link in linked_works %}
+                        <tr>
+                            <td>{{ link.work.code }}</td>
+                            <td>{{ link.work.name }}</td>
+                            <td>{{ link.work.unit_price }}</td>
+                            <td style="min-width: 180px;">
+                                <form method="post" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="update_work">
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="works_q" value="{{ works_query }}">
+                                    <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                                    <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                                    <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                                    <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                                    <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                                    <input type="number" min="1" name="work_quantity" class="form-control form-control-sm" value="{{ link.quantity }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Обновить</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_work">
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="works_q" value="{{ works_query }}">
+                                    <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                                    <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                                    <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                                    <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                                    <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center py-3">Работы не добавлены.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Запчасти</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-8">
+                    <label class="form-label">Поиск по справочнику запчастей</label>
+                    <div class="input-group">
+                        <input type="text" name="parts_q" class="form-control" value="{{ parts_query }}" placeholder="Наименование, артикул, бренд">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'parts_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Количество</label>
+                    <input type="number" min="1" name="noop" class="form-control" value="1" disabled>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+                {% if works_query %}<input type="hidden" name="works_q" value="{{ works_query }}">{% endif %}
+                {% if works_filter != 'all' %}<input type="hidden" name="works_filter" value="{{ works_filter }}">{% endif %}
+                {% if works_sort != 'code' %}<input type="hidden" name="works_sort" value="{{ works_sort }}">{% endif %}
+                {% if works_direction != 'asc' %}<input type="hidden" name="works_dir" value="{{ works_direction }}">{% endif %}
+                {% if consumables_query %}<input type="hidden" name="cons_q" value="{{ consumables_query }}">{% endif %}
+            </form>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="post" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_part">
+                <input type="hidden" name="works_q" value="{{ works_query }}">
+                <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                <div class="col-12 col-md-8">
+                    <label class="form-label" for="{{ part_form.part.id_for_label }}">Запчасть</label>
+                    {{ part_form.part }}
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label" for="part_quantity">Количество</label>
+                    <input id="part_quantity" type="number" min="1" name="part_quantity" class="form-control" value="1">
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-success">Добавить</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead><tr><th>Запчасть</th><th>Артикул</th><th>Бренд</th><th>Всего</th><th>Ручное</th><th>Из работ</th><th>Источник</th><th>Действия</th></tr></thead>
+                    <tbody>
+                    {% for link in linked_parts %}
+                        <tr>
+                            <td>{{ link.part.name }}</td>
+                            <td>{{ link.part.sku|default:"-" }}</td>
+                            <td>{{ link.part.brand.name|default:"-" }}</td>
+                            <td>{{ link.quantity }}</td>
+                            <td>{{ link.manual_quantity }}</td>
+                            <td>{{ link.work_quantity }}</td>
+                            <td>
+                                {% if link.work_quantity > 0 and link.manual_quantity > 0 %}
+                                    <span class="badge text-bg-warning">Смешанное</span>
+                                {% elif link.work_quantity > 0 %}
+                                    <span class="badge text-bg-info">Из работы</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Ручное</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_part">
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="works_q" value="{{ works_query }}">
+                                    <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                                    <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                                    <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                                    <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                                    <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="8" class="text-center py-3">Запчасти не добавлены.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h2 class="h5 m-0">Расходные материалы</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-8">
+                    <label class="form-label">Поиск по справочнику расходных материалов</label>
+                    <div class="input-group">
+                        <input type="text" name="cons_q" class="form-control" value="{{ consumables_query }}" placeholder="Наименование, артикул, бренд">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'cons_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Количество</label>
+                    <input type="number" min="1" name="noop" class="form-control" value="1" disabled>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+                {% if works_query %}<input type="hidden" name="works_q" value="{{ works_query }}">{% endif %}
+                {% if works_filter != 'all' %}<input type="hidden" name="works_filter" value="{{ works_filter }}">{% endif %}
+                {% if works_sort != 'code' %}<input type="hidden" name="works_sort" value="{{ works_sort }}">{% endif %}
+                {% if works_direction != 'asc' %}<input type="hidden" name="works_dir" value="{{ works_direction }}">{% endif %}
+                {% if parts_query %}<input type="hidden" name="parts_q" value="{{ parts_query }}">{% endif %}
+            </form>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="post" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_consumable">
+                <input type="hidden" name="works_q" value="{{ works_query }}">
+                <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                <div class="col-12 col-md-8">
+                    <label class="form-label" for="{{ consumable_form.consumable.id_for_label }}">Расходный материал</label>
+                    {{ consumable_form.consumable }}
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label" for="consumable_quantity">Количество</label>
+                    <input id="consumable_quantity" type="number" min="1" name="consumable_quantity" class="form-control" value="1">
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-success">Добавить</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead><tr><th>Расходный материал</th><th>Артикул</th><th>Бренд</th><th>Всего</th><th>Ручное</th><th>Из работ</th><th>Источник</th><th>Действия</th></tr></thead>
+                    <tbody>
+                    {% for link in linked_consumables %}
+                        <tr>
+                            <td>{{ link.consumable.name }}</td>
+                            <td>{{ link.consumable.sku|default:"-" }}</td>
+                            <td>{{ link.consumable.brand.name|default:"-" }}</td>
+                            <td>{{ link.quantity }}</td>
+                            <td>{{ link.manual_quantity }}</td>
+                            <td>{{ link.work_quantity }}</td>
+                            <td>
+                                {% if link.work_quantity > 0 and link.manual_quantity > 0 %}
+                                    <span class="badge text-bg-warning">Смешанное</span>
+                                {% elif link.work_quantity > 0 %}
+                                    <span class="badge text-bg-info">Из работы</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Ручное</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_consumable">
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="works_q" value="{{ works_query }}">
+                                    <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                                    <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                                    <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                                    <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                                    <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="8" class="text-center py-3">Расходные материалы не добавлены.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    (function () {
+        function attachSelectFilter(searchInputId, selectId) {
+            const searchInput = document.getElementById(searchInputId);
+            const select = document.getElementById(selectId);
+            if (!searchInput || !select) {
+                return;
+            }
+
+            const options = Array.from(select.options).map((option) => ({
+                value: option.value,
+                text: option.text,
+                selected: option.selected,
+            }));
+
+            searchInput.addEventListener("input", function () {
+                const q = this.value.trim().toLowerCase();
+                const currentValue = select.value;
+
+                select.innerHTML = "";
+                options.forEach((item) => {
+                    const matches = !q || item.text.toLowerCase().includes(q);
+                    if (matches) {
+                        const opt = document.createElement("option");
+                        opt.value = item.value;
+                        opt.textContent = item.text;
+                        if (item.value === currentValue) {
+                            opt.selected = true;
+                        }
+                        select.appendChild(opt);
+                    }
+                });
+
+                if (select.options.length === 0) {
+                    const opt = document.createElement("option");
+                    opt.value = "";
+                    opt.textContent = "Ничего не найдено";
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        attachSelectFilter("organization_search", "id_organization");
+        attachSelectFilter("service_center_search", "id_service_center");
+        attachSelectFilter("serviceman_search", "id_serviceman");
+        attachSelectFilter("client_equipment_search", "id_client_equipment");
+        attachSelectFilter("status_search", "id_status");
+
+        const organizationSelect = document.getElementById("id_organization");
+        if (organizationSelect) {
+            organizationSelect.addEventListener("change", function () {
+                const org = this.value;
+                const url = new URL(window.location.href);
+                if (org) {
+                    url.searchParams.set("organization", org);
+                } else {
+                    url.searchParams.delete("organization");
+                }
+                window.location.href = url.toString();
+            });
+        }
+
+        const serviceCenterSelect = document.getElementById("id_service_center");
+        if (serviceCenterSelect) {
+            serviceCenterSelect.addEventListener("change", function () {
+                const center = this.value;
+                const url = new URL(window.location.href);
+                if (center) {
+                    url.searchParams.set("service_center", center);
+                } else {
+                    url.searchParams.delete("service_center");
+                }
+                window.location.href = url.toString();
+            });
+        }
+    })();
+</script>
+{% endblock %}

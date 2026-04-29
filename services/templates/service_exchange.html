@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Сервис: выгрузка и загрузка{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Сервис: {% if mode == 'cleanup' %}Очистка{% elif mode == 'archive' %}Архив базы{% else %}{{ group_config.label }}{% endif %}</h1>
+    <div class="btn-group" role="group" aria-label="Раздел">
+        <a href="{% url 'service_exchange' %}?section=directories&mode={{ mode }}" class="btn btn-sm {% if section == 'directories' %}btn-primary{% else %}btn-outline-primary{% endif %}">Справочники</a>
+        <a href="{% url 'service_exchange' %}?section=documents&mode={{ mode }}" class="btn btn-sm {% if section == 'documents' %}btn-primary{% else %}btn-outline-primary{% endif %}">Документы</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="btn-group mb-3" role="group" aria-label="Режим">
+            <a href="{% url 'service_exchange' %}?section={{ section }}&mode=export" class="btn {% if mode == 'export' %}btn-primary{% else %}btn-outline-primary{% endif %}">Выгрузка</a>
+            <a href="{% url 'service_exchange' %}?section={{ section }}&mode=import" class="btn {% if mode == 'import' %}btn-primary{% else %}btn-outline-primary{% endif %}">Загрузка</a>
+            {% if user.is_superuser %}
+                <a href="{% url 'service_exchange' %}?section=directories&mode=archive" class="btn {% if mode == 'archive' %}btn-warning{% else %}btn-outline-warning{% endif %}">Архив базы</a>
+                <a href="{% url 'service_exchange' %}?section=directories&mode=cleanup" class="btn {% if mode == 'cleanup' %}btn-danger{% else %}btn-outline-danger{% endif %}">Очистка</a>
+            {% endif %}
+        </div>
+
+        {% if mode == 'export' %}
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="export">
+                <input type="hidden" name="section" value="{{ section }}">
+                <input type="hidden" name="mode" value="{{ mode }}">
+
+                <div class="col-12 col-lg-4">
+                    <label class="form-label">Выбор наборов</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selection_mode" id="sel_all" value="all" checked>
+                        <label class="form-check-label" for="sel_all">Все (по умолчанию)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selection_mode" id="sel_specific" value="specific">
+                        <label class="form-check-label" for="sel_specific">Конкретные пункты</label>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-8">
+                    <label class="form-label">Пункты</label>
+                    <div class="row">
+                        {% for item in group_config.items %}
+                            <div class="col-12 col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input exchange-item" type="checkbox" name="items" value="{{ item.key }}" id="item_{{ item.key }}" checked disabled>
+                                    <label class="form-check-label" for="item_{{ item.key }}">{{ item.label }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <label class="form-label" for="export_format">Формат выгрузки</label>
+                    <select id="export_format" name="export_format" class="form-select">
+                        <option value="zip">ZIP (рекомендуется)</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success">Скачать выгрузку</button>
+                </div>
+            </form>
+        {% elif mode == 'import' %}
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="import">
+                <input type="hidden" name="section" value="{{ section }}">
+                <input type="hidden" name="mode" value="{{ mode }}">
+
+                <div class="col-12 col-lg-4">
+                    <label class="form-label">Выбор наборов</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selection_mode" id="imp_sel_all" value="all" checked>
+                        <label class="form-check-label" for="imp_sel_all">Все (по умолчанию)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selection_mode" id="imp_sel_specific" value="specific">
+                        <label class="form-check-label" for="imp_sel_specific">Конкретные пункты</label>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-8">
+                    <label class="form-label">Пункты</label>
+                    <div class="row">
+                        {% for item in group_config.items %}
+                            <div class="col-12 col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input import-item" type="checkbox" name="items" value="{{ item.key }}" id="imp_item_{{ item.key }}" checked disabled>
+                                    <label class="form-check-label" for="imp_item_{{ item.key }}">{{ item.label }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <label class="form-label" for="import_file">Файл загрузки (ZIP или JSON)</label>
+                    <input type="file" class="form-control" id="import_file" name="import_file" accept=".zip,.json" required>
+                </div>
+
+                <div class="col-12 col-lg-6 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="dry_run" id="dry_run" checked>
+                        <label class="form-check-label" for="dry_run">
+                            Только проверка (dry-run, без сохранения)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Запустить загрузку</button>
+                </div>
+            </form>
+
+            {% if import_summary %}
+                <hr>
+                <h2 class="h6">Итоги обработки</h2>
+                <p class="mb-2">
+                    Создано: <strong>{{ import_summary.created }}</strong>,
+                    обновлено: <strong>{{ import_summary.updated }}</strong>,
+                    пропущено: <strong>{{ import_summary.skipped }}</strong>,
+                    ошибок: <strong>{{ import_summary.errors }}</strong>
+                </p>
+                {% if latest_log %}
+                    <p class="mb-3">
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'service_exchange_log_download' latest_log.id %}">Скачать протокол</a>
+                    </p>
+                {% endif %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Набор</th>
+                                <th>Строк</th>
+                                <th>Создано</th>
+                                <th>Обновлено</th>
+                                <th>Пропущено</th>
+                                <th>Ошибок</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, row in import_summary.datasets.items %}
+                                <tr>
+                                    <td>{{ key }}</td>
+                                    <td>{{ row.rows }}</td>
+                                    <td>{{ row.created }}</td>
+                                    <td>{{ row.updated }}</td>
+                                    <td>{{ row.skipped }}</td>
+                                    <td>{{ row.errors }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if ui_row_errors_preview %}
+                    <div class="mt-3">
+                        <h3 class="h6">Детали ошибок по строкам</h3>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Набор</th>
+                                        <th>Строка</th>
+                                        <th>ID</th>
+                                        <th>Ошибка</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in ui_row_errors_preview %}
+                                        <tr>
+                                            <td>{{ item.dataset }}</td>
+                                            <td>{{ item.row }}</td>
+                                            <td>{{ item.id|default:"-" }}</td>
+                                            <td>{{ item.error }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if ui_row_errors_is_truncated %}
+                            <div class="form-text">Показаны первые {{ ui_row_errors_preview_limit }} ошибок. Полный список смотрите в протоколе.</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% elif mode == 'archive' and user.is_superuser %}
+            <div class="alert alert-warning">
+                Будет создана копия текущей SQLite базы в папке arxiv с именем вида data_db_ГГГГММДД_ЧЧММСС.sqlite3.
+            </div>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="archive">
+                <input type="hidden" name="section" value="directories">
+                <input type="hidden" name="mode" value="archive">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-warning">Создать архив базы</button>
+                </div>
+            </form>
+
+            {% if archive_summary %}
+                <hr>
+                <h2 class="h6">Результат архивации</h2>
+                <ul class="mb-3">
+                    <li>Источник: {{ archive_summary.source }}</li>
+                    <li>Архив: {{ archive_summary.target }}</li>
+                    <li>Имя файла: {{ archive_summary.file_name }}</li>
+                    <li>Размер (байт): {{ archive_summary.size_bytes }}</li>
+                    <li>Хранимых архивов: последние {{ archive_summary.keep_files }}</li>
+                    <li>Удалено старых архивов: {{ archive_summary.deleted_old_archives|length }}</li>
+                </ul>
+                {% if archive_summary.deleted_old_archives %}
+                    <div class="form-text mb-3">Удалены файлы: {{ archive_summary.deleted_old_archives|join:", " }}</div>
+                {% endif %}
+                {% if latest_log %}
+                    <p class="mb-3">
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'service_exchange_log_download' latest_log.id %}">Скачать протокол</a>
+                    </p>
+                {% endif %}
+            {% endif %}
+        {% elif mode == 'cleanup' and user.is_superuser %}
+            <div class="alert alert-danger">
+                Внимание: операция удаляет данные. По умолчанию выбраны все наборы справочников и документов.
+            </div>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cleanup">
+                <input type="hidden" name="section" value="directories">
+                <input type="hidden" name="mode" value="cleanup">
+
+                <div class="col-12 col-lg-4">
+                    <label class="form-label">Выбор наборов</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selection_mode" id="clean_sel_all" value="all" checked>
+                        <label class="form-check-label" for="clean_sel_all">Все (по умолчанию)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selection_mode" id="clean_sel_specific" value="specific">
+                        <label class="form-check-label" for="clean_sel_specific">Конкретные пункты</label>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-8">
+                    <label class="form-label">Пункты</label>
+                    <div class="row">
+                        <div class="col-12"><div class="text-muted small mb-1">Справочники</div></div>
+                        {% for item in cleanup_directories_items %}
+                            <div class="col-12 col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input cleanup-item" type="checkbox" name="items" value="{{ item.key }}" id="clean_item_{{ item.key }}" checked disabled>
+                                    <label class="form-check-label" for="clean_item_{{ item.key }}">{{ item.label }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="col-12"><hr class="my-2"></div>
+                        <div class="col-12"><div class="text-muted small mb-1">Документы</div></div>
+                        {% for item in cleanup_documents_items %}
+                            <div class="col-12 col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input cleanup-item" type="checkbox" name="items" value="{{ item.key }}" id="clean_item_{{ item.key }}" checked disabled>
+                                    <label class="form-check-label" for="clean_item_{{ item.key }}">{{ item.label }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="dry_run" id="cleanup_dry_run" checked>
+                        <label class="form-check-label" for="cleanup_dry_run">Только проверка (dry-run, без удаления)</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="confirm_cleanup" id="confirm_cleanup">
+                        <label class="form-check-label" for="confirm_cleanup">Подтверждаю удаление выбранных данных</label>
+                    </div>
+                    <label class="form-label" for="confirm_phrase">Контрольная фраза</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="confirm_phrase"
+                        name="confirm_phrase"
+                        placeholder="Введите ОЧИСТИТЬ"
+                        autocomplete="off"
+                    >
+                    <div class="form-text">Для запуска очистки введите точную фразу: ОЧИСТИТЬ</div>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-danger">Запустить очистку</button>
+                </div>
+            </form>
+
+            {% if cleanup_summary %}
+                <hr>
+                <h2 class="h6">Итоги очистки</h2>
+                <p class="mb-2">Удалено: <strong>{{ cleanup_summary.deleted }}</strong>, ошибок: <strong>{{ cleanup_summary.errors }}</strong></p>
+                {% if latest_log %}
+                    <p class="mb-3">
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'service_exchange_log_download' latest_log.id %}">Скачать протокол</a>
+                    </p>
+                {% endif %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Набор</th>
+                                <th>Удалено</th>
+                                <th>Ошибок</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, row in cleanup_summary.datasets.items %}
+                                <tr>
+                                    <td>{{ key }}</td>
+                                    <td>{{ row.deleted }}</td>
+                                    <td>{{ row.errors }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <hr>
+        <h2 class="h6">Последние операции</h2>
+        <form method="get" class="row g-2 mb-3">
+            <input type="hidden" name="section" value="{{ section }}">
+            <input type="hidden" name="mode" value="{{ mode }}">
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="id_log_action">Действие</label>
+                <select id="id_log_action" name="log_action" class="form-select form-select-sm">
+                    <option value="">Все</option>
+                    <option value="export" {% if log_action_filter == 'export' %}selected{% endif %}>Выгрузка</option>
+                    <option value="import" {% if log_action_filter == 'import' %}selected{% endif %}>Загрузка</option>
+                    <option value="archive" {% if log_action_filter == 'archive' %}selected{% endif %}>Архив базы</option>
+                    <option value="cleanup" {% if log_action_filter == 'cleanup' %}selected{% endif %}>Очистка</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="id_log_status">Результат</label>
+                <select id="id_log_status" name="log_status" class="form-select form-select-sm">
+                    <option value="">Все</option>
+                    <option value="success" {% if log_status_filter == 'success' %}selected{% endif %}>Успешно</option>
+                    <option value="error" {% if log_status_filter == 'error' %}selected{% endif %}>Ошибка</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="id_log_dry_run">Dry-run</label>
+                <select id="id_log_dry_run" name="log_dry_run" class="form-select form-select-sm">
+                    <option value="">Все</option>
+                    <option value="yes" {% if log_dry_run_filter == 'yes' %}selected{% endif %}>Да</option>
+                    <option value="no" {% if log_dry_run_filter == 'no' %}selected{% endif %}>Нет</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="id_log_date_from">Дата с</label>
+                <input id="id_log_date_from" name="log_date_from" type="date" class="form-control form-control-sm" value="{{ log_date_from }}">
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="id_log_date_to">Дата по</label>
+                <input id="id_log_date_to" name="log_date_to" type="date" class="form-control form-control-sm" value="{{ log_date_to }}">
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="id_log_user">Пользователь</label>
+                <input id="id_log_user" name="log_user" type="text" class="form-control form-control-sm" value="{{ log_user_filter }}" placeholder="username">
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Применить</button>
+                <a href="{% url 'service_exchange' %}?section={{ section }}&mode={{ mode }}" class="btn btn-sm btn-outline-secondary">Сброс</a>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Действие</th>
+                        <th>Результат</th>
+                        <th>Пользователь</th>
+                        <th>Dry-run</th>
+                        <th>Файл</th>
+                        <th>Протокол</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_logs %}
+                        <tr>
+                            <td>{{ log.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>{{ log.get_action_display }}</td>
+                            <td>{{ log.get_result_status_display }}</td>
+                            <td>{{ log.user.username|default:"-" }}</td>
+                            <td>{% if log.dry_run %}Да{% else %}Нет{% endif %}</td>
+                            <td>{{ log.file_name|default:"-" }}</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'service_exchange_log_download' log.id %}">JSON</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-3">Логи пока отсутствуют.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function bindModeSwitch(radioAllId, radioSpecificId, itemClass) {
+            const allRadio = document.getElementById(radioAllId);
+            const specificRadio = document.getElementById(radioSpecificId);
+            const items = document.querySelectorAll("." + itemClass);
+            if (!allRadio || !specificRadio || !items.length) {
+                return;
+            }
+
+            function updateState() {
+                const allMode = allRadio.checked;
+                items.forEach((item) => {
+                    item.disabled = allMode;
+                    if (allMode) {
+                        item.checked = true;
+                    }
+                });
+            }
+
+            allRadio.addEventListener("change", updateState);
+            specificRadio.addEventListener("change", updateState);
+            updateState();
+        }
+
+        bindModeSwitch("sel_all", "sel_specific", "exchange-item");
+        bindModeSwitch("imp_sel_all", "imp_sel_specific", "import-item");
+        bindModeSwitch("clean_sel_all", "clean_sel_specific", "cleanup-item");
+    })();
+</script>
+{% endblock %}

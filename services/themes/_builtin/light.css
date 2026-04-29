@@ -1,0 +1,35 @@
+:root {
+    --bs-body-bg: #f6f7fb;
+    --bs-body-color: #1f2937;
+    --bs-primary: #2f6fed;
+    --bs-primary-rgb: 47, 111, 237;
+    --bs-link-color: #2f6fed;
+    --bs-link-hover-color: #1d4fc4;
+    --bs-border-color: #d7ddea;
+    --bs-secondary-bg: #eef2f8;
+    --bs-tertiary-bg: #ffffff;
+}
+
+body {
+    background: linear-gradient(180deg, #eef3ff 0%, #f8fbff 100%);
+    color: var(--bs-body-color);
+}
+
+.navbar.bg-dark {
+    background: linear-gradient(90deg, #203a74 0%, #2f6fed 100%) !important;
+}
+
+.card,
+.table,
+.dropdown-menu,
+.form-control,
+.form-select,
+.btn {
+    border-radius: 0.85rem;
+}
+
+.card,
+.table,
+.dropdown-menu {
+    box-shadow: 0 0.45rem 1.25rem rgba(47, 111, 237, 0.08);
+}

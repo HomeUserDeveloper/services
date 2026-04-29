@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Справочник контактов{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h1 class="h5 m-0">Контакты</h1>
+    </div>
+
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-10">
+                <label class="form-label">Поиск (контакт, должность, телефон, организация)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        title="Очистить поиск"
+                        onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();"
+                    >X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-1">
+                {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'contacts' %}?{{ sort_links.name }}" class="text-decoration-none">Имя{% if sort == 'name' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'contacts' %}?{{ sort_links.position }}" class="text-decoration-none">Должность{% if sort == 'position' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'contacts' %}?{{ sort_links.phone }}" class="text-decoration-none">Телефон{% if sort == 'phone' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'contacts' %}?{{ sort_links.organization }}" class="text-decoration-none">Организация{% if sort == 'organization' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Действие</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for contact in contacts %}
+                    <tr>
+                        <td>{{ contact.name }}</td>
+                        <td>{{ contact.position|default:"-" }}</td>
+                        <td>{{ contact.phone }}</td>
+                        <td>{{ contact.organization.name }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'organizations' %}?edit={{ contact.organization.id }}&contact_edit={{ contact.id }}">Открыть</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">Контакты не найдены.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination_controls.html" %}
+</div>
+{% endblock %}

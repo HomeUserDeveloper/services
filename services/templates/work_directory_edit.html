@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editing_work %}Редактирование работы{% else %}Новая работа{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">{% if editing_work %}Редактирование работы{% else %}Новая работа{% endif %}</h1>
+    <div class="d-flex gap-2">
+        {% if editing_work %}
+            <a class="btn btn-outline-danger" href="{% url 'work_directory_delete' editing_work.id %}?q={{ q|urlencode }}&component={{ component }}&sort={{ sort }}&dir={{ dir }}">Удалить</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if editing_work %}
+                <input type="hidden" name="work_id" value="{{ editing_work.id }}">
+            {% endif %}
+            <input type="hidden" name="q" value="{{ q }}">
+            <input type="hidden" name="component" value="{{ component }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ dir }}">
+            <input type="hidden" name="consumable_q" value="{{ consumable_query }}">
+            <input type="hidden" name="part_q" value="{{ part_query }}">
+
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-12 col-lg-4">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                {% if editing_work %}
+                    <a class="btn btn-outline-primary" href="{% url 'work_directory_new' %}?q={{ q|urlencode }}&component={{ component }}&sort={{ sort }}&dir={{ dir }}">Новая запись</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if editing_work %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Расходные материалы в работе</h2>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Бренд</th>
+                        <th>Категория</th>
+                        <th>Артикул</th>
+                        <th>Количество</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for link in linked_consumables %}
+                        <tr>
+                            <td>{{ link.consumable.name }}</td>
+                            <td>{{ link.consumable.brand.name|default:"-" }}</td>
+                            <td>{{ link.consumable.category|default:"-" }}</td>
+                            <td>{{ link.consumable.sku|default:"-" }}</td>
+                            <td>{{ link.quantity }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Удалить строку расходного материала?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_consumable">
+                                    <input type="hidden" name="work_id" value="{{ editing_work.id }}">
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="component" value="{{ component }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="consumable_q" value="{{ consumable_query }}">
+                                    <input type="hidden" name="part_q" value="{{ part_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">Строк расходных материалов пока нет.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Добавить расходный материал</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-10">
+                    <label class="form-label">Поиск расходного материала (наименование, артикул, бренд, категория)</label>
+                    <div class="input-group">
+                        <input type="text" name="consumable_q" class="form-control" value="{{ consumable_query }}" placeholder="Введите текст для поиска">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'consumable_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="component" value="{{ component }}">
+                <input type="hidden" name="sort" value="{{ sort }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <input type="hidden" name="part_q" value="{{ part_query }}">
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Бренд</th>
+                        <th>Категория</th>
+                        <th>Артикул</th>
+                        <th style="width: 140px;">Количество</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in consumable_candidates %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.brand.name|default:"-" }}</td>
+                            <td>{{ item.category|default:"-" }}</td>
+                            <td>{{ item.sku|default:"-" }}</td>
+                            <td>
+                                <input
+                                    type="number"
+                                    name="consumable_quantity"
+                                    value="1"
+                                    min="1"
+                                    class="form-control form-control-sm"
+                                    style="max-width:90px;"
+                                    form="add-consumable-{{ item.id }}"
+                                >
+                            </td>
+                            <td>
+                                <form method="post" id="add-consumable-{{ item.id }}" class="d-flex gap-2 align-items-center">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="add_consumable">
+                                    <input type="hidden" name="work_id" value="{{ editing_work.id }}">
+                                    <input type="hidden" name="consumable_id" value="{{ item.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="component" value="{{ component }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="consumable_q" value="{{ consumable_query }}">
+                                    <input type="hidden" name="part_q" value="{{ part_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Добавить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">Нет расходных материалов для добавления по текущему поиску.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Запчасти в работе</h2>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Бренд</th>
+                        <th>Категория</th>
+                        <th>Артикул</th>
+                        <th>Количество</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for link in linked_parts %}
+                        <tr>
+                            <td>{{ link.part.name }}</td>
+                            <td>{{ link.part.brand.name|default:"-" }}</td>
+                            <td>{{ link.part.category|default:"-" }}</td>
+                            <td>{{ link.part.sku|default:"-" }}</td>
+                            <td>{{ link.quantity }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Удалить строку запчасти?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_part">
+                                    <input type="hidden" name="work_id" value="{{ editing_work.id }}">
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="component" value="{{ component }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="consumable_q" value="{{ consumable_query }}">
+                                    <input type="hidden" name="part_q" value="{{ part_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">Строк запчастей пока нет.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h2 class="h5 m-0">Добавить запчасть</h2>
+        </div>
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-10">
+                    <label class="form-label">Поиск запчасти (наименование, артикул, бренд, категория)</label>
+                    <div class="input-group">
+                        <input type="text" name="part_q" class="form-control" value="{{ part_query }}" placeholder="Введите текст для поиска">
+                        <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'part_q\']').value=''; form.submit();">X</button>
+                    </div>
+                </div>
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="component" value="{{ component }}">
+                <input type="hidden" name="sort" value="{{ sort }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <input type="hidden" name="consumable_q" value="{{ consumable_query }}">
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Бренд</th>
+                        <th>Категория</th>
+                        <th>Артикул</th>
+                        <th style="width: 140px;">Количество</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in part_candidates %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.brand.name|default:"-" }}</td>
+                            <td>{{ item.category|default:"-" }}</td>
+                            <td>{{ item.sku|default:"-" }}</td>
+                            <td>
+                                <input
+                                    type="number"
+                                    name="part_quantity"
+                                    value="1"
+                                    min="1"
+                                    class="form-control form-control-sm"
+                                    style="max-width:90px;"
+                                    form="add-part-{{ item.id }}"
+                                >
+                            </td>
+                            <td>
+                                <form method="post" id="add-part-{{ item.id }}" class="d-flex gap-2 align-items-center">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="add_part">
+                                    <input type="hidden" name="work_id" value="{{ editing_work.id }}">
+                                    <input type="hidden" name="part_id" value="{{ item.id }}">
+                                    <input type="hidden" name="q" value="{{ q }}">
+                                    <input type="hidden" name="component" value="{{ component }}">
+                                    <input type="hidden" name="sort" value="{{ sort }}">
+                                    <input type="hidden" name="dir" value="{{ dir }}">
+                                    <input type="hidden" name="consumable_q" value="{{ consumable_query }}">
+                                    <input type="hidden" name="part_q" value="{{ part_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Добавить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">Нет запчастей для добавления по текущему поиску.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

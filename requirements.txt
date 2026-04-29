@@ -1,0 +1,6 @@
+Django==6.0.4
+openpyxl==3.1.5
+reportlab==4.4.10
+beautifulsoup4==4.14.3
+Sphinx==9.1.0
+sphinx_rtd_theme==3.1.0

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}История ремонта аппарата{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">История ремонта аппарата</h1>
+    <a class="btn btn-outline-secondary" href="{{ back_url }}">К списку техники</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-12 col-md-4"><strong>Организация:</strong><br>{{ equipment.organization.name }}</div>
+            <div class="col-12 col-md-4"><strong>Наименование:</strong><br>{{ equipment.product_model|default:"-" }}</div>
+            <div class="col-12 col-md-4"><strong>Серийный номер:</strong><br>{{ equipment.serial_number|default:"-" }}</div>
+            <div class="col-12 col-md-4"><strong>Инвентарный номер:</strong><br>{{ equipment.inventory_number|default:"-" }}</div>
+            <div class="col-12 col-md-4"><strong>Счетчик печати:</strong><br>{{ equipment.print_counter|default:"-" }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header"><h2 class="h5 m-0">Документы ремонта по аппарату</h2></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Дата</th>
+                    <th>Статус</th>
+                    <th>Дата ред. статуса</th>
+                    <th>Инженер</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in documents %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.date|date:"d.m.Y" }}</td>
+                        <td>{{ item.status.name }}</td>
+                        <td>{{ item.status_edited_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ item.serviceman.full_name }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'repair_document_view' item.id %}">Просмотр</a>
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'repair_document_edit' item.id %}">Редактировать</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">По этому аппарату документов ремонта пока нет.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

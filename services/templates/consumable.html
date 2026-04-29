@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Расходные материалы{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Расходные материалы</h1>
+    <a class="btn btn-primary" href="{% url 'consumable_new' %}?q={{ query|urlencode }}&category={{ category_filter }}&brand={{ brand_filter }}&device_type={{ device_type_filter|urlencode }}&attachments={{ attachment_filter }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Новая запись</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label">Поиск (наименование, сайт, артикул, бренд)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст для поиска">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Тип устройства</label>
+                <select name="device_type" class="form-select">
+                    <option value="">Все типы</option>
+                    {% for dt in all_device_types %}
+                        <option value="{{ dt }}" {% if device_type_filter == dt %}selected{% endif %}>{{ dt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Категория</label>
+                <select name="category" class="form-select">
+                    <option value="">Все категории</option>
+                    {% for c in all_categories %}
+                        <option value="{{ c.id }}" {% if category_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Бренд</label>
+                <select name="brand" class="form-select">
+                    <option value="">Все бренды</option>
+                    {% for b in all_brands %}
+                        <option value="{{ b.id }}" {% if brand_filter == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Вложения</label>
+                <select name="attachments" class="form-select">
+                    <option value="" {% if not attachment_filter %}selected{% endif %}>Все</option>
+                    <option value="with" {% if attachment_filter == 'with' %}selected{% endif %}>Есть</option>
+                    <option value="without" {% if attachment_filter == 'without' %}selected{% endif %}>Нет</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-1">
+                {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            <a class="btn btn-sm {% if attachment_filter == 'with' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'consumable' %}?q={{ query|urlencode }}&device_type={{ device_type_filter|urlencode }}&category={{ category_filter }}&brand={{ brand_filter }}&relation_q={{ relation_query|urlencode }}&attachments=with&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Только с вложениями</a>
+            <a class="btn btn-sm {% if attachment_filter == 'without' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'consumable' %}?q={{ query|urlencode }}&device_type={{ device_type_filter|urlencode }}&category={{ category_filter }}&brand={{ brand_filter }}&relation_q={{ relation_query|urlencode }}&attachments=without&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Только без вложений</a>
+            <a class="btn btn-sm {% if not attachment_filter %}btn-secondary{% else %}btn-outline-secondary{% endif %}" href="{% url 'consumable' %}?q={{ query|urlencode }}&device_type={{ device_type_filter|urlencode }}&category={{ category_filter }}&brand={{ brand_filter }}&relation_q={{ relation_query|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Сброс</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'consumable' %}?{{ sort_links.name }}" class="text-decoration-none">Наименование{% if sort == 'name' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'consumable' %}?{{ sort_links.site }}" class="text-decoration-none">Сайт{% if sort == 'site' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'consumable' %}?{{ sort_links.device_type }}" class="text-decoration-none">Тип{% if sort == 'device_type' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'consumable' %}?{{ sort_links.brand }}" class="text-decoration-none">Бренд{% if sort == 'brand' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Цвет</th>
+                    <th>Формат</th>
+                    <th><a href="{% url 'consumable' %}?{{ sort_links.speed_print }}" class="text-decoration-none">Скорость{% if sort == 'speed_print' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'consumable' %}?{{ sort_links.category }}" class="text-decoration-none">Категория{% if sort == 'category' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Вложения</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in consumables %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>
+                            {% if item.site %}
+                                <a href="{{ item.site }}" target="_blank" rel="noopener noreferrer">ссылка</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.char_device_type|default:"-" }}</td>
+                        <td>{{ item.brand.name|default:"-" }}</td>
+                        <td>{{ item.char_color|default:"-" }}</td>
+                        <td>{{ item.char_format_print|default:"-" }}</td>
+                        <td>{% if item.char_speed_print %}{{ item.char_speed_print }} стр/мин{% else %}-{% endif %}</td>
+                        <td>{{ item.category|default:"-" }}</td>
+                        <td>
+                            <span class="badge text-bg-secondary">{{ item.attachment_count|default:0 }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'consumable_edit' item.id %}?q={{ query|urlencode }}&category={{ category_filter }}&brand={{ brand_filter }}&device_type={{ device_type_filter|urlencode }}&attachments={{ attachment_filter }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Редактировать</a>
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'consumable_delete' item.id %}?q={{ query|urlencode }}&category={{ category_filter }}&brand={{ brand_filter }}&device_type={{ device_type_filter|urlencode }}&attachments={{ attachment_filter }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Удалить</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-4">Справочник пуст.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination_controls.html" %}
+</div>
+{% endblock %}

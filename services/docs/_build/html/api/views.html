@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Views (Представления) &mdash; Services Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Models (Модели)" href="models.html" />
+    <link rel="prev" title="services package" href="../services.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Services Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Services</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Views</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.style_settings"><code class="docutils literal notranslate"><span class="pre">style_settings()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.style_select"><code class="docutils literal notranslate"><span class="pre">style_select()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.theme_asset"><code class="docutils literal notranslate"><span class="pre">theme_asset()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.service_exchange_log_download"><code class="docutils literal notranslate"><span class="pre">service_exchange_log_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.service_exchange"><code class="docutils literal notranslate"><span class="pre">service_exchange()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.home"><code class="docutils literal notranslate"><span class="pre">home()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.home_logo"><code class="docutils literal notranslate"><span class="pre">home_logo()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.profile"><code class="docutils literal notranslate"><span class="pre">profile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.contacts"><code class="docutils literal notranslate"><span class="pre">contacts()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.egrul_lookup"><code class="docutils literal notranslate"><span class="pre">egrul_lookup()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.organizations"><code class="docutils literal notranslate"><span class="pre">organizations()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.service_centers"><code class="docutils literal notranslate"><span class="pre">service_centers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.users"><code class="docutils literal notranslate"><span class="pre">users()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.serviceman"><code class="docutils literal notranslate"><span class="pre">serviceman()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_category"><code class="docutils literal notranslate"><span class="pre">product_category()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.brand"><code class="docutils literal notranslate"><span class="pre">brand()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.equipment_characteristic_type"><code class="docutils literal notranslate"><span class="pre">equipment_characteristic_type()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_model"><code class="docutils literal notranslate"><span class="pre">product_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_model_edit"><code class="docutils literal notranslate"><span class="pre">product_model_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_model_consumables"><code class="docutils literal notranslate"><span class="pre">product_model_consumables()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_model_parts"><code class="docutils literal notranslate"><span class="pre">product_model_parts()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.brand_delete"><code class="docutils literal notranslate"><span class="pre">brand_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_category_delete"><code class="docutils literal notranslate"><span class="pre">product_category_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.product_model_delete"><code class="docutils literal notranslate"><span class="pre">product_model_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.consumable"><code class="docutils literal notranslate"><span class="pre">consumable()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.part"><code class="docutils literal notranslate"><span class="pre">part()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.consumable_edit"><code class="docutils literal notranslate"><span class="pre">consumable_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.part_edit"><code class="docutils literal notranslate"><span class="pre">part_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.consumable_product_models"><code class="docutils literal notranslate"><span class="pre">consumable_product_models()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.part_product_models"><code class="docutils literal notranslate"><span class="pre">part_product_models()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.consumable_delete"><code class="docutils literal notranslate"><span class="pre">consumable_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.part_delete"><code class="docutils literal notranslate"><span class="pre">part_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.work_directory"><code class="docutils literal notranslate"><span class="pre">work_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.work_directory_edit"><code class="docutils literal notranslate"><span class="pre">work_directory_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.work_directory_delete"><code class="docutils literal notranslate"><span class="pre">work_directory_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.serviceman_delete"><code class="docutils literal notranslate"><span class="pre">serviceman_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.status_directory_delete"><code class="docutils literal notranslate"><span class="pre">status_directory_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.status_directory"><code class="docutils literal notranslate"><span class="pre">status_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.address_directory_delete"><code class="docutils literal notranslate"><span class="pre">address_directory_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.address_directory"><code class="docutils literal notranslate"><span class="pre">address_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.acceptance_document"><code class="docutils literal notranslate"><span class="pre">acceptance_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.acceptance_document_edit"><code class="docutils literal notranslate"><span class="pre">acceptance_document_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.acceptance_document_add_equipment"><code class="docutils literal notranslate"><span class="pre">acceptance_document_add_equipment()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.shipment_document"><code class="docutils literal notranslate"><span class="pre">shipment_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.shipment_document_edit"><code class="docutils literal notranslate"><span class="pre">shipment_document_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_shipment_document"><code class="docutils literal notranslate"><span class="pre">report_shipment_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_acceptance_document"><code class="docutils literal notranslate"><span class="pre">report_acceptance_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_repair_document"><code class="docutils literal notranslate"><span class="pre">report_repair_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_part"><code class="docutils literal notranslate"><span class="pre">report_part()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_consumable"><code class="docutils literal notranslate"><span class="pre">report_consumable()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_work_directory"><code class="docutils literal notranslate"><span class="pre">report_work_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_address_directory"><code class="docutils literal notranslate"><span class="pre">report_address_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_brand"><code class="docutils literal notranslate"><span class="pre">report_brand()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_status_directory"><code class="docutils literal notranslate"><span class="pre">report_status_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_product_category"><code class="docutils literal notranslate"><span class="pre">report_product_category()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.report_characteristics"><code class="docutils literal notranslate"><span class="pre">report_characteristics()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.repair_document"><code class="docutils literal notranslate"><span class="pre">repair_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.repair_document_edit"><code class="docutils literal notranslate"><span class="pre">repair_document_edit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.repair_document_view"><code class="docutils literal notranslate"><span class="pre">repair_document_view()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.repair_document_equipment_history"><code class="docutils literal notranslate"><span class="pre">repair_document_equipment_history()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.repair_document_delete"><code class="docutils literal notranslate"><span class="pre">repair_document_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.client_equipment"><code class="docutils literal notranslate"><span class="pre">client_equipment()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#services.views.client_equipment_delete"><code class="docutils literal notranslate"><span class="pre">client_equipment_delete()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forms.html">Forms</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Services Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Views (Представления)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/views.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="views">
+<h1>Views (Представления)<a class="headerlink" href="#views" title="Link to this heading"></a></h1>
+<dl class="py function" id="module-services.views">
+<dt class="sig sig-object py" id="services.views.style_settings">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">style_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#style_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.style_settings" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.style_select">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">style_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#style_select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.style_select" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.theme_asset">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">theme_asset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#theme_asset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.theme_asset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.service_exchange_log_download">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">service_exchange_log_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#service_exchange_log_download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.service_exchange_log_download" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>log_id</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.service_exchange">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">service_exchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#service_exchange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.service_exchange" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.home">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">home</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.home" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.home_logo">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">home_logo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#home_logo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.home_logo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.profile">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.profile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.contacts">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">contacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#contacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.contacts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.egrul_lookup">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">egrul_lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#egrul_lookup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.egrul_lookup" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.organizations">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">organizations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#organizations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.organizations" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.service_centers">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">service_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#service_centers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.service_centers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.users">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">users</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#users"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.users" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.serviceman">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">serviceman</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#serviceman"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.serviceman" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_category">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_category</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_category"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_category" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.brand">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">brand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#brand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.brand" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.equipment_characteristic_type">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">equipment_characteristic_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#equipment_characteristic_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.equipment_characteristic_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_model">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_model_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_model_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_model_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_model_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_model_consumables">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_model_consumables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_model_consumables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_model_consumables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_model_parts">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_model_parts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_model_parts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_model_parts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.brand_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">brand_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brand_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#brand_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.brand_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_category_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_category_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_category_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_category_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.product_model_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">product_model_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#product_model_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.product_model_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.consumable">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">consumable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#consumable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.consumable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.part">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#part"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.part" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.consumable_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">consumable_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consumable_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#consumable_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.consumable_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.part_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">part_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#part_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.part_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.consumable_product_models">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">consumable_product_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consumable_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#consumable_product_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.consumable_product_models" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.part_product_models">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">part_product_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#part_product_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.part_product_models" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.consumable_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">consumable_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consumable_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#consumable_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.consumable_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.part_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">part_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#part_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.part_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.work_directory">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">work_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#work_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.work_directory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.work_directory_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">work_directory_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#work_directory_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.work_directory_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.work_directory_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">work_directory_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#work_directory_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.work_directory_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.serviceman_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">serviceman_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serviceman_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#serviceman_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.serviceman_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.status_directory_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">status_directory_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#status_directory_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.status_directory_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.status_directory">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">status_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#status_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.status_directory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.address_directory_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">address_directory_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#address_directory_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.address_directory_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.address_directory">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">address_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#address_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.address_directory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.acceptance_document">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">acceptance_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#acceptance_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.acceptance_document" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.acceptance_document_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">acceptance_document_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#acceptance_document_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.acceptance_document_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.acceptance_document_add_equipment">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">acceptance_document_add_equipment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#acceptance_document_add_equipment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.acceptance_document_add_equipment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.shipment_document">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">shipment_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#shipment_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.shipment_document" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.shipment_document_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">shipment_document_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#shipment_document_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.shipment_document_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_shipment_document">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_shipment_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_shipment_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_shipment_document" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_acceptance_document">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_acceptance_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_acceptance_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_acceptance_document" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_repair_document">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_repair_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_repair_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_repair_document" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_part">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_part"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_part" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_consumable">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_consumable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_consumable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_consumable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_work_directory">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_work_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_work_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_work_directory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_address_directory">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_address_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_address_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_address_directory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_brand">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_brand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_brand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_brand" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_status_directory">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_status_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_status_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_status_directory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_product_category">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_product_category</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_product_category"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_product_category" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.report_characteristics">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">report_characteristics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#report_characteristics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.report_characteristics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.repair_document">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">repair_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#repair_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.repair_document" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.repair_document_edit">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">repair_document_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#repair_document_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.repair_document_edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.repair_document_view">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">repair_document_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#repair_document_view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.repair_document_view" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.repair_document_equipment_history">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">repair_document_equipment_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equipment_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#repair_document_equipment_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.repair_document_equipment_history" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.repair_document_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">repair_document_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#repair_document_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.repair_document_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.client_equipment">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">client_equipment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#client_equipment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.client_equipment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="services.views.client_equipment_delete">
+<span class="sig-prename descclassname"><span class="pre">services.views.</span></span><span class="sig-name descname"><span class="pre">client_equipment_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equipment_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/views.html#client_equipment_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.views.client_equipment_delete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../services.html" class="btn btn-neutral float-left" title="services package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="models.html" class="btn btn-neutral float-right" title="Models (Модели)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Services | Дата формирования: 30.04.2026 01:00.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

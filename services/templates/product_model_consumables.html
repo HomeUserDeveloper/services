@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Связи техники с расходными материалами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Расходные материалы для техники: {{ editing_model.name }}</h1>
+    <a class="btn btn-outline-secondary" href="{{ back_url }}">К редактированию техники</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h2 class="h5 m-0">Текущие связи</h2>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>Бренд</th>
+                    <th>Категория</th>
+                    <th>Артикул</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for link in linked_relations %}
+                    <tr>
+                        <td>{{ link.consumable.name }}</td>
+                        <td>{{ link.consumable.brand.name|default:"-" }}</td>
+                        <td>{{ link.consumable.category|default:"-" }}</td>
+                        <td>{{ link.consumable.sku|default:"-" }}</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                {% for k, v in back_params.items %}
+                                    <input type="hidden" name="{{ k }}" value="{{ v }}">
+                                {% endfor %}
+                                <input type="hidden" name="action" value="remove_relation">
+                                <input type="hidden" name="relation_id" value="{{ link.id }}">
+                                <input type="hidden" name="relation_q" value="{{ relation_query }}">
+                                <input type="hidden" name="relation_brand" value="{{ relation_brand }}">
+                                <input type="hidden" name="relation_category" value="{{ relation_category }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Удалить связь</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-3">Связей пока нет.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="h5 m-0">Добавить связь</h2>
+    </div>
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            {% for k, v in back_params.items %}
+                <input type="hidden" name="{{ k }}" value="{{ v }}">
+            {% endfor %}
+            <div class="col-12 col-md-5">
+                <label class="form-label">Поиск (наименование, артикул, бренд, категория)</label>
+                <div class="input-group">
+                    <input type="text" name="relation_q" class="form-control" value="{{ relation_query }}" placeholder="Введите текст для поиска">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'relation_q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Бренд</label>
+                <select name="relation_brand" class="form-select">
+                    <option value="">Все бренды</option>
+                    {% for b in all_brands %}
+                        <option value="{{ b.id }}" {% if relation_brand == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Категория</label>
+                <select name="relation_category" class="form-select">
+                    <option value="">Все категории</option>
+                    {% for c in all_categories %}
+                        <option value="{{ c.id }}" {% if relation_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>Бренд</th>
+                    <th>Категория</th>
+                    <th>Артикул</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in relation_candidates %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.brand.name|default:"-" }}</td>
+                        <td>{{ item.category|default:"-" }}</td>
+                        <td>{{ item.sku|default:"-" }}</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                {% for k, v in back_params.items %}
+                                    <input type="hidden" name="{{ k }}" value="{{ v }}">
+                                {% endfor %}
+                                <input type="hidden" name="action" value="add_relation">
+                                <input type="hidden" name="consumable_id" value="{{ item.id }}">
+                                <input type="hidden" name="relation_q" value="{{ relation_query }}">
+                                <input type="hidden" name="relation_brand" value="{{ relation_brand }}">
+                                <input type="hidden" name="relation_category" value="{{ relation_category }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success">Связать</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-3">Нет записей для добавления по текущему фильтру.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

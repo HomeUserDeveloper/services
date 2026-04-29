@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Документы ремонта{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 m-0">Документы ремонта</h1>
+    <a class="btn btn-primary" href="{% url 'repair_document_new' %}">Новый документ</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label">Поиск (организация, инженер, статус, неисправность, наименование, серийный, инвентарный)</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Введите текст: организация, статус, серийный или инвентарный номер">
+                    <button type="button" class="btn btn-outline-secondary" onclick="const form=this.form; form.querySelector('input[name=\'q\']').value=''; form.submit();">X</button>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Организация</label>
+                <select name="organization" class="form-select">
+                    <option value="">Все</option>
+                    {% for org in organizations %}
+                        <option value="{{ org.id }}" {% if organization_filter == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-select">
+                    <option value="">Все</option>
+                    {% for st in statuses %}
+                        <option value="{{ st.id }}" {% if status_filter == st.id|stringformat:"s" %}selected{% endif %}>{{ st.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-1">
+                {% include "includes/per_page_select.html" with per_page_label="На стр." %}
+            </div>
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ direction }}">
+            <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.id }}" class="text-decoration-none">ID{% if sort == 'id' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.date }}" class="text-decoration-none">Дата{% if sort == 'date' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.organization }}" class="text-decoration-none">Организация{% if sort == 'organization' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.equipment }}" class="text-decoration-none">Техника клиента{% if sort == 'equipment' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.serviceman }}" class="text-decoration-none">Сервисный инженер{% if sort == 'serviceman' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.status }}" class="text-decoration-none">Статус{% if sort == 'status' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th><a href="{% url 'repair_document' %}?{{ sort_links.status_edited_at }}" class="text-decoration-none">Дата ред. статуса{% if sort == 'status_edited_at' %} {% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in documents %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.date|date:"d.m.Y" }}</td>
+                        <td>{{ item.organization.name }}</td>
+                        <td>
+                            {% if item.client_equipment %}
+                                {{ item.client_equipment.product_model|default:"-" }}
+                                {% if item.client_equipment.serial_number %}<br><small class="text-muted">S/N: {{ item.client_equipment.serial_number }}</small>{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.serviceman.full_name }}</td>
+                        <td>{{ item.status.name }}</td>
+                        <td>{{ item.status_edited_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'repair_document_view' item.id %}">Просмотр</a>
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'repair_document_edit' item.id %}?q={{ query|urlencode }}&organization={{ organization_filter|urlencode }}&status={{ status_filter|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Редактировать</a>
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'repair_document_delete' item.id %}?q={{ query|urlencode }}&organization={{ organization_filter|urlencode }}&status={{ status_filter|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Удалить</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">Документы пока не добавлены.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination_controls.html" %}
+</div>
+{% endblock %}
