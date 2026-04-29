@@ -113,7 +113,7 @@ def _first_form_error(form):
     for errors in form.errors.values():
         if errors:
             return errors[0]
-    return "РџСЂРѕРІРµСЂСЊС‚Рµ РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ Р·Р°РїРѕР»РЅРµРЅРёСЏ С„РѕСЂРјС‹."
+    return "Проверьте корректность заполнения формы."
 
 
 def _save_catalog_attachment(owner_field, owner, attachment_model, attachment_form):
@@ -2997,8 +2997,8 @@ def brand_delete(request, brand_id):
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ Р±СЂРµРЅРґР°",
-        "object_label": "Р±СЂРµРЅРґ",
+        "title": "Удаление бренда",
+        "object_label": "бренд",
         "q": back_params.get("q", ""),
         "sort": back_params.get("sort", "name"),
         "dir": back_params.get("dir", "asc"),
@@ -3024,14 +3024,14 @@ def product_category_delete(request, category_id):
     if request.method == "POST":
         item_name = item.name
         item.delete()
-        messages.success(request, f"РљР°С‚РµРіРѕСЂРёСЏ В«{item_name}В» СѓРґР°Р»РµРЅР°.")
+        messages.success(request, f"Категория \"{item_name}\" удалена.")
         return redirect(back_url)
 
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ РєР°С‚РµРіРѕСЂРёРё С‚РѕРІР°СЂР°",
-        "object_label": "РєР°С‚РµРіРѕСЂРёСЋ",
+        "title": "Удаление категории товара",
+        "object_label": "категорию",
         "q": back_params.get("q", ""),
         "group": back_params.get("group", ""),
         "sort": back_params.get("sort", "name"),
@@ -3058,14 +3058,14 @@ def product_model_delete(request, model_id):
     if request.method == "POST":
         item_name = item.name
         item.delete()
-        messages.success(request, f"РўРµС…РЅРёРєР° В«{item_name}В» СѓРґР°Р»РµРЅР°.")
+        messages.success(request, f"Техника \"{item_name}\" удалена.")
         return redirect(back_url)
 
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ С‚РµС…РЅРёРєРё",
-        "object_label": "С‚РµС…РЅРёРєР°",
+        "title": "Удаление техники",
+        "object_label": "технику",
         "q": back_params.get("q", ""),
         "brand": back_params.get("brand", ""),
         "category": back_params.get("category", ""),
@@ -4338,11 +4338,11 @@ def part_delete(request, part_id):
 
     if request.method == "POST":
         if not can_delete:
-            messages.error(request, "РќРµР»СЊР·СЏ СѓРґР°Р»РёС‚СЊ Р·Р°РїС‡Р°СЃС‚СЊ, РїРѕРєР° РµСЃС‚СЊ СЃРІСЏР·Рё СЃ С‚РµС…РЅРёРєРѕР№.")
+            messages.error(request, "Нельзя удалить запчасть, пока есть связи с техникой.")
             return redirect(reverse("part_edit", kwargs={"part_id": item.id}))
         item_name = item.name
         item.delete()
-        messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{item_name}В» СѓРґР°Р»РµРЅР°.")
+        messages.success(request, f"Запчасть \"{item_name}\" удалена.")
         return redirect(back_url)
 
     context = {
@@ -4684,8 +4684,8 @@ def work_directory_delete(request, work_id):
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ СЂР°Р±РѕС‚С‹",
-        "object_label": "СЂР°Р±РѕС‚Сѓ",
+        "title": "Удаление работы",
+        "object_label": "работу",
         "q": back_params.get("q", ""),
         "component": back_params.get("component", ""),
         "sort": back_params.get("sort", "code"),
@@ -4712,14 +4712,14 @@ def serviceman_delete(request, serviceman_id):
     if request.method == "POST":
         item_name = item.full_name
         item.delete()
-        messages.success(request, f"РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ В«{item_name}В» СѓРґР°Р»РµРЅ.")
+        messages.success(request, f"Сервисный инженер \"{item_name}\" удален.")
         return redirect(back_url)
 
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ СЃРµСЂРІРёСЃРЅРѕРіРѕ РёРЅР¶РµРЅРµСЂР°",
-        "object_label": "СЃРµСЂРІРёСЃРЅРѕРіРѕ РёРЅР¶РµРЅРµСЂР°",
+        "title": "Удаление сервисного инженера",
+        "object_label": "сервисного инженера",
         "q": back_params.get("q", ""),
         "status": back_params.get("status", ""),
         "sort": back_params.get("sort", "full_name"),
@@ -4746,14 +4746,14 @@ def status_directory_delete(request, status_id):
     if request.method == "POST":
         item_name = item.name
         item.delete()
-        messages.success(request, f"РЎС‚Р°С‚СѓСЃ В«{item_name}В» СѓРґР°Р»РµРЅ.")
+        messages.success(request, f"Статус \"{item_name}\" удален.")
         return redirect(back_url)
 
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ СЃС‚Р°С‚СѓСЃР°",
-        "object_label": "СЃС‚Р°С‚СѓСЃ",
+        "title": "Удаление статуса",
+        "object_label": "статус",
         "q": back_params.get("q", ""),
         "code": back_params.get("code", ""),
         "sort": back_params.get("sort", "code"),
@@ -4908,14 +4908,14 @@ def address_directory_delete(request, address_id):
     if request.method == "POST":
         item_name = str(item)
         item.delete()
-        messages.success(request, f"РђРґСЂРµСЃ В«{item_name}В» СѓРґР°Р»РµРЅ.")
+        messages.success(request, f"Адрес \"{item_name}\" удален.")
         return redirect(back_url)
 
     context = {
         "item": item,
         "back_url": back_url,
-        "title": "РЈРґР°Р»РµРЅРёРµ Р°РґСЂРµСЃР°",
-        "object_label": "Р°РґСЂРµСЃ",
+        "title": "Удаление адреса",
+        "object_label": "адрес",
         "q": back_params.get("q", ""),
         "locality": back_params.get("locality", ""),
         "sort": back_params.get("sort", "locality"),
@@ -8369,8 +8369,8 @@ def repair_document_delete(request, document_id):
     context = {
         "item": item,
         "back_url": reverse("repair_document"),
-        "title": "РЈРґР°Р»РµРЅРёРµ РґРѕРєСѓРјРµРЅС‚Р° СЂРµРјРѕРЅС‚Р°",
-        "object_label": "РґРѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р°",
+        "title": "Удаление документа ремонта",
+        "object_label": "документ ремонта",
         "q": "",
         "sort": "",
         "dir": "",
@@ -8532,14 +8532,14 @@ def client_equipment_delete(request, equipment_id):
         item_id = item.id
         org_name = item.organization.name
         item.delete()
-        messages.success(request, f"РўРµС…РЅРёРєР° СѓРґР°Р»РµРЅР° РёР· {org_name}.")
+        messages.success(request, f"Техника удалена из {org_name}.")
         return redirect(reverse("client_equipment"))
 
     context = {
         "item": item,
         "back_url": reverse("client_equipment"),
-        "title": "РЈРґР°Р»РµРЅРёРµ С‚РµС…РЅРёРєРё",
-        "object_label": "С‚РµС…РЅРёРєР°",
+        "title": "Удаление техники",
+        "object_label": "технику",
         "q": "",
         "sort": "",
         "dir": "",
