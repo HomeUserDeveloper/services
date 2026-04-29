@@ -42,6 +42,7 @@ from .forms import (
     OrganizationContactForm,
     OrganizationForm,
     PartForm,
+    PlannedVisitForm,
     ProductCategoryForm,
     ProductModelForm,
     RepairDocumentConsumableForm,
@@ -69,6 +70,7 @@ from .models import (
     OrganizationContact,
     Part,
     PartCompatibility,
+    PlannedVisit,
     ProductCategory,
     ProductModel,
     ProductModelCharacteristic,
@@ -8107,6 +8109,157 @@ def client_equipment_delete(request, equipment_id):
         "back_url": reverse("client_equipment"),
         "title": "Удаление техники",
         "object_label": "техника",
+        "q": "",
+        "sort": "",
+        "dir": "",
+    }
+    return render(request, "dictionary_delete.html", context)
+
+
+@login_required(login_url="login")
+def planned_visit(request):
+    visit_id = request.GET.get("edit")
+    query = request.GET.get("q", "").strip()
+    normalized_query = _normalize_search_term(query)
+    serviceman_filter = request.GET.get("serviceman", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+    per_page = request.GET.get("per_page", "50").strip().lower()
+    if per_page not in {"50", "100", "all"}:
+        per_page = "50"
+    sort = request.GET.get("sort", "date")
+    direction = request.GET.get("dir", "desc")
+    editing_visit = None
+
+    sort_map = {
+        "date": "date",
+        "serviceman": "serviceman__full_name",
+        "organization": "organization__name",
+        "status": "status",
+    }
+
+    if sort not in sort_map:
+        sort = "date"
+    if direction not in {"asc", "desc"}:
+        direction = "desc"
+
+    order_field = sort_map[sort]
+    if direction == "desc":
+        order_field = f"-{order_field}"
+
+    if visit_id:
+        editing_visit = get_object_or_404(PlannedVisit, id=visit_id)
+
+    if request.method == "POST":
+        target_id = request.POST.get("visit_id")
+        post_query = request.POST.get("q", query).strip()
+        post_serviceman = request.POST.get("serviceman", serviceman_filter).strip()
+        post_status = request.POST.get("status_filter", status_filter).strip()
+        post_per_page = request.POST.get("per_page", per_page).strip().lower()
+        post_sort = request.POST.get("sort", sort).strip() or "date"
+        post_direction = request.POST.get("dir", direction).strip() or "desc"
+
+        params = {}
+        if post_query:
+            params["q"] = post_query
+        if post_serviceman:
+            params["serviceman"] = post_serviceman
+        if post_status:
+            params["status"] = post_status
+        if post_per_page in {"50", "100", "all"}:
+            params["per_page"] = post_per_page
+        if post_sort in sort_map:
+            params["sort"] = post_sort
+        if post_direction in {"asc", "desc"}:
+            params["dir"] = post_direction
+
+        redirect_url = reverse("planned_visit")
+        if params:
+            redirect_url = f"{redirect_url}?{urlencode(params)}"
+
+        if target_id:
+            editing_visit = get_object_or_404(PlannedVisit, id=target_id)
+            form = PlannedVisitForm(request.POST, instance=editing_visit)
+            is_new = False
+        else:
+            form = PlannedVisitForm(request.POST)
+            is_new = True
+
+        if form.is_valid():
+            saved = form.save()
+            if is_new:
+                messages.success(request, f"Плановый визит #{saved.id} создан.")
+            else:
+                messages.success(request, f"Плановый визит #{saved.id} сохранен.")
+            params["edit"] = saved.id
+            return redirect(f"{reverse('planned_visit')}?{urlencode(params)}")
+    else:
+        form = PlannedVisitForm(instance=editing_visit)
+
+    visits_qs = PlannedVisit.objects.select_related("serviceman", "organization").all()
+    if normalized_query:
+        visits_qs = visits_qs.filter(
+            Q(organization__name__icontains=normalized_query)
+            | Q(serviceman__full_name__icontains=normalized_query)
+            | Q(description__icontains=normalized_query)
+            | Q(note__icontains=normalized_query)
+        )
+    if serviceman_filter and serviceman_filter.isdigit():
+        visits_qs = visits_qs.filter(serviceman_id=int(serviceman_filter))
+    valid_statuses = {c[0] for c in PlannedVisit.Status.choices}
+    if status_filter in valid_statuses:
+        visits_qs = visits_qs.filter(status=status_filter)
+    visits_qs = visits_qs.order_by(order_field, "-id")
+    paged_visits, page_obj, per_page = _paginate_report_queryset(request, visits_qs, default_per_page=per_page)
+
+    sort_links = {}
+    for key in sort_map:
+        next_dir = "desc" if sort == key and direction == "asc" else "asc"
+        link_params = {"sort": key, "dir": next_dir}
+        if query:
+            link_params["q"] = query
+        if serviceman_filter:
+            link_params["serviceman"] = serviceman_filter
+        if status_filter:
+            link_params["status"] = status_filter
+        if per_page:
+            link_params["per_page"] = per_page
+        sort_links[key] = urlencode(link_params)
+
+    servicemen_list = ServiceMan.objects.filter(status=ServiceMan.Status.ACTIVE).order_by("full_name")
+
+    context = {
+        "form": form,
+        "editing_visit": editing_visit,
+        "visits": paged_visits,
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "per_page_options": ["50", "100", "all"],
+        "query": query,
+        "serviceman_filter": serviceman_filter,
+        "status_filter": status_filter,
+        "status_choices": PlannedVisit.Status.choices,
+        "servicemen_list": servicemen_list,
+        "sort": sort,
+        "direction": direction,
+        "sort_links": sort_links,
+    }
+    return render(request, "planned_visit.html", context)
+
+
+@login_required(login_url="login")
+def planned_visit_delete(request, visit_id):
+    item = get_object_or_404(PlannedVisit, id=visit_id)
+
+    if request.method == "POST":
+        item.delete()
+        messages.success(request, "Плановый визит удален.")
+        return redirect(reverse("planned_visit"))
+
+    context = {
+        "item": item,
+        "back_url": reverse("planned_visit"),
+        "title": "Удаление планового визита",
+        "object_label": "плановый визит",
         "q": "",
         "sort": "",
         "dir": "",

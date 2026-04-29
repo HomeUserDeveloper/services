@@ -13,6 +13,7 @@ from .models import (
     Organization,
     OrganizationContact,
     Part,
+    PlannedVisit,
     ProductCategory,
     ProductModel,
     RepairDocument,
@@ -569,3 +570,24 @@ class RepairDocumentWorkForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["work"].queryset = WorkDirectory.objects.all().order_by("code", "name")
+
+
+class PlannedVisitForm(forms.ModelForm):
+    class Meta:
+        model = PlannedVisit
+        fields = ("date", "serviceman", "organization", "description", "status", "note")
+        widgets = {
+            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "serviceman": forms.Select(attrs={"class": "form-select"}),
+            "organization": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "note": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["serviceman"].queryset = ServiceMan.objects.filter(
+            status=ServiceMan.Status.ACTIVE
+        ).order_by("full_name")
+        self.fields["organization"].queryset = Organization.objects.all().order_by("name")

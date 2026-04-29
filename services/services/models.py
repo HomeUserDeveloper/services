@@ -1042,3 +1042,43 @@ class ServiceExchangeLog(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} / {self.get_section_display()} / {self.created_at:%d.%m.%Y %H:%M}"
+
+
+class PlannedVisit(models.Model):
+    class Status(models.TextChoices):
+        PLANNED = "planned", "Запланирован"
+        IN_PROGRESS = "in_progress", "В работе"
+        COMPLETED = "completed", "Выполнен"
+        CANCELLED = "cancelled", "Отменен"
+
+    date = models.DateField("Дата")
+    serviceman = models.ForeignKey(
+        ServiceMan,
+        on_delete=models.PROTECT,
+        related_name="planned_visits",
+        verbose_name="Сервисный инженер",
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.PROTECT,
+        related_name="planned_visits",
+        verbose_name="Организация",
+    )
+    description = models.TextField("Описание", blank=True)
+    status = models.CharField(
+        "Статус",
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PLANNED,
+    )
+    note = models.TextField("Примечание", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-date", "-id")
+        verbose_name = "Плановый визит"
+        verbose_name_plural = "Плановые визиты"
+
+    def __str__(self):
+        return f"Визит #{self.id} от {self.date} / {self.organization}"

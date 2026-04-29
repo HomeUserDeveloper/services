@@ -90,6 +90,8 @@ urlpatterns = [
     path("service/exchange/log/<int:log_id>/download/", views.service_exchange_log_download, name="service_exchange_log_download"),
     path("client-equipment/", views.client_equipment, name="client_equipment"),
     path("client-equipment/<int:equipment_id>/delete/", views.client_equipment_delete, name="client_equipment_delete"),
+    path("planned-visit/", views.planned_visit, name="planned_visit"),
+    path("planned-visit/<int:visit_id>/delete/", views.planned_visit_delete, name="planned_visit_delete"),
     path("api/egrul-lookup/", views.egrul_lookup, name="egrul_lookup"),
     path("users/", views.users, name="users"),
     path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
