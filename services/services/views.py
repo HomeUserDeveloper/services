@@ -145,7 +145,7 @@ def style_settings(request):
         if action == "upload_theme":
             uploaded_file = request.FILES.get("theme_zip")
             if not uploaded_file:
-                messages.error(request, "Р’С‹Р±РµСЂРёС‚Рµ ZIP-С„Р°Р№Р» С‚РµРјС‹ Bootstrap.")
+                messages.error(request, "Выберите ZIP-файл темы Bootstrap.")
             else:
                 try:
                     theme = install_theme_from_zip(uploaded_file)
@@ -153,34 +153,34 @@ def style_settings(request):
                     messages.error(request, str(error))
                 else:
                     set_active_theme(request, theme["key"])
-                    messages.success(request, f"РўРµРјР° В«{theme['name']}В» Р·Р°РіСЂСѓР¶РµРЅР° Рё Р°РєС‚РёРІРёСЂРѕРІР°РЅР°.")
+                    messages.success(request, f"Тема «{theme['name']}» загружена и активирована.")
             return redirect(reverse("style_settings"))
 
         if action == "select_theme":
             theme_key = request.POST.get("theme_key", "").strip()
             theme = get_theme_by_key(theme_key, themes=themes)
             if not theme:
-                messages.error(request, "Р’С‹Р±СЂР°РЅРЅР°СЏ С‚РµРјР° РЅРµ РЅР°Р№РґРµРЅР°.")
+                messages.error(request, "Выбранная тема не найдена.")
             else:
                 set_active_theme(request, theme_key)
-                messages.success(request, f"РђРєС‚РёРІРёСЂРѕРІР°РЅР° С‚РµРјР° В«{theme['name']}В».")
+                messages.success(request, f"Активирована тема «{theme['name']}».")
             return redirect(reverse("style_settings"))
 
         if action == "set_default_theme":
             theme_key = request.POST.get("theme_key", "").strip()
             theme = get_theme_by_key(theme_key, themes=themes)
             if not theme:
-                messages.error(request, "РўРµРјР° РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РЅРµ РЅР°Р№РґРµРЅР°.")
+                messages.error(request, "Тема для установки по умолчанию не найдена.")
             else:
                 set_default_theme_key(theme_key)
-                messages.success(request, f"РўРµРјР° В«{theme['name']}В» РЅР°Р·РЅР°С‡РµРЅР° С‚РµРјРѕР№ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ.")
+                messages.success(request, f"Тема «{theme['name']}» назначена темой по умолчанию.")
             return redirect(reverse("style_settings"))
 
         if action == "delete_theme":
             theme_key = request.POST.get("theme_key", "").strip()
             theme = get_theme_by_key(theme_key, themes=themes)
             if not theme:
-                messages.error(request, "РўРµРјР° РґР»СЏ СѓРґР°Р»РµРЅРёСЏ РЅРµ РЅР°Р№РґРµРЅР°.")
+                messages.error(request, "Тема для удаления не найдена.")
                 return redirect(reverse("style_settings"))
             try:
                 delete_uploaded_theme(theme_key)
@@ -192,7 +192,7 @@ def style_settings(request):
                     request.session.modified = True
                 if default_theme_key == theme_key:
                     set_default_theme_key("builtin-light")
-                messages.success(request, f"РўРµРјР° В«{theme['name']}В» СѓРґР°Р»РµРЅР°.")
+                messages.success(request, f"Тема «{theme['name']}» удалена.")
             return redirect(reverse("style_settings"))
 
     context = {
@@ -211,11 +211,11 @@ def style_select(request, theme_key):
     themes = list_available_themes()
     theme = get_theme_by_key(theme_key, themes=themes)
     if not theme:
-        messages.error(request, "РўРµРјР° РЅРµ РЅР°Р№РґРµРЅР°.")
+        messages.error(request, "Тема не найдена.")
         return redirect(reverse("style_settings"))
 
     set_active_theme(request, theme_key)
-    messages.success(request, f"РђРєС‚РёРІРёСЂРѕРІР°РЅР° С‚РµРјР° В«{theme['name']}В».")
+    messages.success(request, f"Активирована тема «{theme['name']}».")
     next_url = request.GET.get("next", "").strip()
     return redirect(next_url or reverse("style_settings"))
 
@@ -232,45 +232,45 @@ def theme_asset(request, theme_key, asset_path):
 
 SERVICE_EXPORT_GROUPS = {
     "directories": {
-        "label": "РЎРїСЂР°РІРѕС‡РЅРёРєРё",
+        "label": "Справочники",
         "items": [
-            {"key": "status_directory", "label": "РЎС‚Р°С‚СѓСЃС‹", "model": StatusDirectory},
-            {"key": "address", "label": "РђРґСЂРµСЃР°", "model": Address},
-            {"key": "brand", "label": "Р‘СЂРµРЅРґС‹", "model": Brand},
-            {"key": "product_category", "label": "РљР°С‚РµРіРѕСЂРёРё С‚РѕРІР°СЂРѕРІ", "model": ProductCategory},
-            {"key": "organization", "label": "РћСЂРіР°РЅРёР·Р°С†РёРё", "model": Organization},
-            {"key": "service_center", "label": "РЎРµСЂРІРёСЃРЅС‹Рµ С†РµРЅС‚СЂС‹", "model": ServiceCenter},
-            {"key": "serviceman", "label": "РЎРµСЂРІРёСЃРЅС‹Рµ РёРЅР¶РµРЅРµСЂС‹", "model": ServiceMan},
-            {"key": "product_model", "label": "РўРµС…РЅРёРєР°", "model": ProductModel},
-            {"key": "equipment_characteristic_type", "label": "РўРёРїС‹ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє С‚РµС…РЅРёРєРё", "model": EquipmentCharacteristicType},
-            {"key": "product_model_characteristic", "label": "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё С‚РµС…РЅРёРєРё", "model": ProductModelCharacteristic},
-            {"key": "consumable", "label": "Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹", "model": Consumable},
-            {"key": "consumable_characteristic", "label": "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё СЂР°СЃС…РѕРґРЅС‹С… РјР°С‚РµСЂРёР°Р»РѕРІ", "model": ConsumableCharacteristic},
-            {"key": "part", "label": "Р—Р°РїС‡Р°СЃС‚Рё", "model": Part},
-            {"key": "part_characteristic", "label": "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё Р·Р°РїС‡Р°СЃС‚РµР№", "model": PartCharacteristic},
-            {"key": "work_directory", "label": "Р Р°Р±РѕС‚С‹", "model": WorkDirectory},
-            {"key": "work_directory_consumable", "label": "Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹ РІ СЂР°Р±РѕС‚Р°С…", "model": WorkDirectoryConsumable},
-            {"key": "work_directory_part", "label": "Р—Р°РїС‡Р°СЃС‚Рё РІ СЂР°Р±РѕС‚Р°С…", "model": WorkDirectoryPart},
-            {"key": "client_equipment", "label": "РўРµС…РЅРёРєР° РєР»РёРµРЅС‚РѕРІ", "model": ClientEquipment},
-            {"key": "organization_address", "label": "РђРґСЂРµСЃР° РѕСЂРіР°РЅРёР·Р°С†РёР№", "model": OrganizationAddress},
-            {"key": "organization_contact", "label": "РљРѕРЅС‚Р°РєС‚С‹ РѕСЂРіР°РЅРёР·Р°С†РёР№", "model": OrganizationContact},
-            {"key": "service_center_address", "label": "РђРґСЂРµСЃР° СЃРµСЂРІРёСЃРЅС‹С… С†РµРЅС‚СЂРѕРІ", "model": ServiceCenterAddress},
-            {"key": "service_center_contact", "label": "РљРѕРЅС‚Р°РєС‚С‹ СЃРµСЂРІРёСЃРЅС‹С… С†РµРЅС‚СЂРѕРІ", "model": ServiceCenterContact},
-            {"key": "consumable_compatibility", "label": "РЎРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ СЂР°СЃС…РѕРґРЅРёРєРѕРІ", "model": ConsumableCompatibility},
-            {"key": "part_compatibility", "label": "РЎРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ Р·Р°РїС‡Р°СЃС‚РµР№", "model": PartCompatibility},
+            {"key": "status_directory", "label": "Статусы", "model": StatusDirectory},
+            {"key": "address", "label": "Адреса", "model": Address},
+            {"key": "brand", "label": "Бренды", "model": Brand},
+            {"key": "product_category", "label": "Категории товаров", "model": ProductCategory},
+            {"key": "organization", "label": "Организации", "model": Organization},
+            {"key": "service_center", "label": "Сервисные центры", "model": ServiceCenter},
+            {"key": "serviceman", "label": "Сервисные инженеры", "model": ServiceMan},
+            {"key": "product_model", "label": "Техника", "model": ProductModel},
+            {"key": "equipment_characteristic_type", "label": "Типы характеристик техники", "model": EquipmentCharacteristicType},
+            {"key": "product_model_characteristic", "label": "Характеристики техники", "model": ProductModelCharacteristic},
+            {"key": "consumable", "label": "Расходные материалы", "model": Consumable},
+            {"key": "consumable_characteristic", "label": "Характеристики расходных материалов", "model": ConsumableCharacteristic},
+            {"key": "part", "label": "Запчасти", "model": Part},
+            {"key": "part_characteristic", "label": "Характеристики запчастей", "model": PartCharacteristic},
+            {"key": "work_directory", "label": "Работы", "model": WorkDirectory},
+            {"key": "work_directory_consumable", "label": "Расходные материалы в работах", "model": WorkDirectoryConsumable},
+            {"key": "work_directory_part", "label": "Запчасти в работах", "model": WorkDirectoryPart},
+            {"key": "client_equipment", "label": "Техника клиентов", "model": ClientEquipment},
+            {"key": "organization_address", "label": "Адреса организаций", "model": OrganizationAddress},
+            {"key": "organization_contact", "label": "Контакты организаций", "model": OrganizationContact},
+            {"key": "service_center_address", "label": "Адреса сервисных центров", "model": ServiceCenterAddress},
+            {"key": "service_center_contact", "label": "Контакты сервисных центров", "model": ServiceCenterContact},
+            {"key": "consumable_compatibility", "label": "Совместимость расходников", "model": ConsumableCompatibility},
+            {"key": "part_compatibility", "label": "Совместимость запчастей", "model": PartCompatibility},
         ],
     },
     "documents": {
-        "label": "Р”РѕРєСѓРјРµРЅС‚С‹",
+        "label": "Документы",
         "items": [
-            {"key": "repair_document", "label": "Р РµРјРѕРЅС‚", "model": RepairDocument},
-            {"key": "repair_document_work", "label": "Р Р°Р±РѕС‚С‹ РІ СЂРµРјРѕРЅС‚Рµ", "model": RepairDocumentWork},
-            {"key": "repair_document_consumable", "label": "Р Р°СЃС…РѕРґРЅРёРєРё РІ СЂРµРјРѕРЅС‚Рµ", "model": RepairDocumentConsumable},
-            {"key": "repair_document_part", "label": "Р—Р°РїС‡Р°СЃС‚Рё РІ СЂРµРјРѕРЅС‚Рµ", "model": RepairDocumentPart},
-            {"key": "acceptance_document", "label": "РџСЂРёРµРјРєР° С‚РµС…РЅРёРєРё", "model": AcceptanceDocument},
-            {"key": "acceptance_document_equipment", "label": "РўРµС…РЅРёРєР° РІ РїСЂРёРµРјРєРµ", "model": AcceptanceDocumentEquipment},
-            {"key": "shipment_document", "label": "РћС‚РіСЂСѓР·РєР° С‚РµС…РЅРёРєРё", "model": ShipmentDocument},
-            {"key": "shipment_document_equipment", "label": "РўРµС…РЅРёРєР° РІ РѕС‚РіСЂСѓР·РєРµ", "model": ShipmentDocumentEquipment},
+            {"key": "repair_document", "label": "Ремонт", "model": RepairDocument},
+            {"key": "repair_document_work", "label": "Работы в ремонте", "model": RepairDocumentWork},
+            {"key": "repair_document_consumable", "label": "Расходники в ремонте", "model": RepairDocumentConsumable},
+            {"key": "repair_document_part", "label": "Запчасти в ремонте", "model": RepairDocumentPart},
+            {"key": "acceptance_document", "label": "Приемка техники", "model": AcceptanceDocument},
+            {"key": "acceptance_document_equipment", "label": "Техника в приемке", "model": AcceptanceDocumentEquipment},
+            {"key": "shipment_document", "label": "Отгрузка техники", "model": ShipmentDocument},
+            {"key": "shipment_document_equipment", "label": "Техника в отгрузке", "model": ShipmentDocumentEquipment},
         ],
     },
 }
@@ -387,12 +387,12 @@ def _archive_database_copy() -> dict:
     db_conf = settings.DATABASES.get("default", {})
     engine = db_conf.get("ENGINE", "")
     if engine != "django.db.backends.sqlite3":
-        raise ValueError("РђСЂС…РёРІР°С†РёСЏ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РґР»СЏ SQLite Р±Р°Р·С‹")
+        raise ValueError("Архивация поддерживается только для SQLite базы")
 
     db_name = db_conf.get("NAME")
     db_path = Path(db_name)
     if not db_path.exists():
-        raise ValueError(f"Р¤Р°Р№Р» Р±Р°Р·С‹ РґР°РЅРЅС‹С… РЅРµ РЅР°Р№РґРµРЅ: {db_path}")
+        raise ValueError(f"Файл базы данных не найден: {db_path}")
 
     archive_dir = Path(settings.BASE_DIR) / "arxiv"
     archive_dir.mkdir(parents=True, exist_ok=True)
@@ -463,7 +463,7 @@ def _service_parse_uploaded_payload(uploaded_file) -> dict:
     if file_name.endswith(".zip"):
         with zipfile.ZipFile(uploaded_file) as archive:
             if "manifest.json" not in archive.namelist():
-                raise ValueError("Р’ Р°СЂС…РёРІРµ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ manifest.json")
+                raise ValueError("В архиве отсутствует manifest.json")
 
             manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
             datasets = manifest.get("datasets") or []
@@ -482,7 +482,7 @@ def _service_parse_uploaded_payload(uploaded_file) -> dict:
 
     raw_payload = json.loads(uploaded_file.read().decode("utf-8"))
     if not isinstance(raw_payload, dict) or "data" not in raw_payload:
-        raise ValueError("JSON РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РѕР±СЉРµРєС‚ СЃ РїРѕР»РµРј data")
+        raise ValueError("JSON должен содержать объект с полем data")
     return raw_payload
 
 
@@ -521,7 +521,7 @@ def _import_dataset_rows(item_map: dict, selected_keys: list[str], payload: dict
                         "dataset": key,
                         "row": row_index,
                         "id": None,
-                        "error": "РЎС‚СЂРѕРєР° РёРјРµРµС‚ РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ (РѕР¶РёРґР°РµС‚СЃСЏ РѕР±СЉРµРєС‚ JSON)",
+                        "error": "Строка имеет неверный формат (ожидается объект JSON)",
                     }
                 )
                 continue
@@ -599,7 +599,7 @@ def _create_service_exchange_log(
 def service_exchange_log_download(request, log_id: int):
     log = get_object_or_404(ServiceExchangeLog, id=log_id)
     if not request.user.is_staff and log.user_id != request.user.id:
-        messages.error(request, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ СЃРєР°С‡РёРІР°РЅРёСЏ СЌС‚РѕРіРѕ РїСЂРѕС‚РѕРєРѕР»Р°.")
+        messages.error(request, "Недостаточно прав для скачивания этого протокола.")
         return redirect(reverse("service_exchange"))
 
     payload = {
@@ -633,10 +633,10 @@ def service_exchange(request):
     if mode not in {"export", "import", "cleanup", "archive"}:
         mode = "export"
     if mode == "cleanup" and not request.user.is_superuser:
-        messages.error(request, "РџСѓРЅРєС‚ РћС‡РёСЃС‚РєР° РґРѕСЃС‚СѓРїРµРЅ С‚РѕР»СЊРєРѕ СЃСѓРїРµСЂРїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.")
+        messages.error(request, "Пункт Очистка доступен только суперпользователю.")
         return redirect(f"{reverse('service_exchange')}?section=directories&mode=export")
     if mode == "archive" and not request.user.is_superuser:
-        messages.error(request, "РџСѓРЅРєС‚ РђСЂС…РёРІ Р±Р°Р·С‹ РґРѕСЃС‚СѓРїРµРЅ С‚РѕР»СЊРєРѕ СЃСѓРїРµСЂРїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.")
+        messages.error(request, "Пункт Архив базы доступен только суперпользователю.")
         return redirect(f"{reverse('service_exchange')}?section=directories&mode=export")
 
     group_config = SERVICE_EXPORT_GROUPS[section]
@@ -704,7 +704,7 @@ def service_exchange(request):
             dry_run = request.POST.get("dry_run") == "on"
 
             if not uploaded_file:
-                messages.error(request, "Р’С‹Р±РµСЂРёС‚Рµ С„Р°Р№Р» РґР»СЏ Р·Р°РіСЂСѓР·РєРё.")
+                messages.error(request, "Выберите файл для загрузки.")
                 latest_log = _create_service_exchange_log(
                     request,
                     action=ServiceExchangeLog.Action.IMPORT,
@@ -721,7 +721,7 @@ def service_exchange(request):
                     available_keys = set(payload.get("data", {}).keys())
                     selected_keys = [key for key in selected_keys if key in available_keys]
                     if not selected_keys:
-                        messages.error(request, "Р’ С„Р°Р№Р»Рµ РЅРµС‚ РІС‹Р±СЂР°РЅРЅС‹С… РЅР°Р±РѕСЂРѕРІ РґР°РЅРЅС‹С….")
+                        messages.error(request, "В файле нет выбранных наборов данных.")
                         latest_log = _create_service_exchange_log(
                             request,
                             action=ServiceExchangeLog.Action.IMPORT,
@@ -730,7 +730,7 @@ def service_exchange(request):
                             selected_keys=selected_keys,
                             dry_run=dry_run,
                             file_name=uploaded_file.name,
-                            message="Р’ С„Р°Р№Р»Рµ РЅРµС‚ РІС‹Р±СЂР°РЅРЅС‹С… РЅР°Р±РѕСЂРѕРІ РґР°РЅРЅС‹С…",
+                            message="В файле нет выбранных наборов данных",
                         )
                     else:
                         with transaction.atomic():
@@ -750,24 +750,24 @@ def service_exchange(request):
                             file_name=uploaded_file.name,
                             summary=import_summary,
                             message=(
-                                f"РћР±РЅР°СЂСѓР¶РµРЅРѕ РѕС€РёР±РѕРє: {import_summary.get('errors', 0)}"
+                                f"Обнаружено ошибок: {import_summary.get('errors', 0)}"
                                 if has_errors
-                                else ("РџСЂРѕРІРµСЂРєР° РІС‹РїРѕР»РЅРµРЅР°" if dry_run else "Р—Р°РіСЂСѓР·РєР° РІС‹РїРѕР»РЅРµРЅР°")
+                                else ("Проверка выполнена" if dry_run else "Загрузка выполнена")
                             ),
                         )
 
                         if dry_run:
-                            messages.info(request, "РџСЂРѕРІРµСЂРєР° РІС‹РїРѕР»РЅРµРЅР°. РР·РјРµРЅРµРЅРёСЏ РЅРµ СЃРѕС…СЂР°РЅРµРЅС‹ (dry-run).")
+                            messages.info(request, "Проверка выполнена. Изменения не сохранены (dry-run).")
                         elif not has_errors:
-                            messages.success(request, "Р—Р°РіСЂСѓР·РєР° РІС‹РїРѕР»РЅРµРЅР° СѓСЃРїРµС€РЅРѕ.")
+                            messages.success(request, "Загрузка выполнена успешно.")
 
                         if has_errors:
                             messages.warning(
                                 request,
-                                f"Р—Р°РіСЂСѓР·РєР° Р·Р°РІРµСЂС€РµРЅР° СЃ РѕС€РёР±РєР°РјРё: {import_summary.get('errors', 0)}. РџРѕРґСЂРѕР±РЅРѕСЃС‚Рё РІ РїСЂРѕС‚РѕРєРѕР»Рµ.",
+                                f"Загрузка завершена с ошибками: {import_summary.get('errors', 0)}. Подробности в протоколе.",
                             )
                 except Exception as exc:
-                    messages.error(request, f"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: {exc}")
+                    messages.error(request, f"Ошибка загрузки: {exc}")
                     latest_log = _create_service_exchange_log(
                         request,
                         action=ServiceExchangeLog.Action.IMPORT,
@@ -781,14 +781,14 @@ def service_exchange(request):
 
         if action == "cleanup":
             if not request.user.is_superuser:
-                messages.error(request, "РџСѓРЅРєС‚ РћС‡РёСЃС‚РєР° РґРѕСЃС‚СѓРїРµРЅ С‚РѕР»СЊРєРѕ СЃСѓРїРµСЂРїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.")
+                messages.error(request, "Пункт Очистка доступен только суперпользователю.")
             else:
                 dry_run = request.POST.get("dry_run") == "on"
                 confirmed = request.POST.get("confirm_cleanup") == "on"
                 confirm_phrase = request.POST.get("confirm_phrase", "").strip()
-                is_phrase_valid = confirm_phrase in {"РћР§РРЎРўРРўР¬", "OCHISTIT"}
+                is_phrase_valid = confirm_phrase in {"ОЧИСТИТЬ", "OCHISTIT"}
                 if not confirmed:
-                    messages.error(request, "РџРѕРґС‚РІРµСЂРґРёС‚Рµ РѕС‡РёСЃС‚РєСѓ С„Р»Р°Р¶РєРѕРј РїРµСЂРµРґ Р·Р°РїСѓСЃРєРѕРј.")
+                    messages.error(request, "Подтвердите очистку флажком перед запуском.")
                     latest_log = _create_service_exchange_log(
                         request,
                         action=ServiceExchangeLog.Action.CLEANUP,
@@ -796,10 +796,10 @@ def service_exchange(request):
                         result_status=ServiceExchangeLog.ResultStatus.ERROR,
                         selected_keys=selected_keys,
                         dry_run=dry_run,
-                        message="РћС‡РёСЃС‚РєР° РЅРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅР°",
+                        message="Очистка не подтверждена",
                     )
                 elif not is_phrase_valid:
-                    messages.error(request, "Р’РІРµРґРёС‚Рµ РєРѕРЅС‚СЂРѕР»СЊРЅСѓСЋ С„СЂР°Р·Сѓ РћР§РРЎРўРРўР¬ РґР»СЏ Р·Р°РїСѓСЃРєР° РѕС‡РёСЃС‚РєРё.")
+                    messages.error(request, "Введите контрольную фразу ОЧИСТИТЬ для запуска очистки.")
                     latest_log = _create_service_exchange_log(
                         request,
                         action=ServiceExchangeLog.Action.CLEANUP,
@@ -807,7 +807,7 @@ def service_exchange(request):
                         result_status=ServiceExchangeLog.ResultStatus.ERROR,
                         selected_keys=selected_keys,
                         dry_run=dry_run,
-                        message="РќРµРІРµСЂРЅР°СЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ С„СЂР°Р·Р°",
+                        message="Неверная контрольная фраза",
                     )
                 else:
                     try:
@@ -827,24 +827,24 @@ def service_exchange(request):
                             dry_run=dry_run,
                             summary=cleanup_summary,
                             message=(
-                                f"РћР±РЅР°СЂСѓР¶РµРЅРѕ РѕС€РёР±РѕРє: {cleanup_summary.get('errors', 0)}"
+                                f"Обнаружено ошибок: {cleanup_summary.get('errors', 0)}"
                                 if has_errors
-                                else ("РџСЂРѕРІРµСЂРєР° РѕС‡РёСЃС‚РєРё РІС‹РїРѕР»РЅРµРЅР°" if dry_run else "РћС‡РёСЃС‚РєР° РІС‹РїРѕР»РЅРµРЅР°")
+                                else ("Проверка очистки выполнена" if dry_run else "Очистка выполнена")
                             ),
                         )
 
                         if dry_run:
-                            messages.info(request, "РџСЂРѕРІРµСЂРєР° РѕС‡РёСЃС‚РєРё РІС‹РїРѕР»РЅРµРЅР°. РР·РјРµРЅРµРЅРёСЏ РЅРµ СЃРѕС…СЂР°РЅРµРЅС‹ (dry-run).")
+                            messages.info(request, "Проверка очистки выполнена. Изменения не сохранены (dry-run).")
                         elif not has_errors:
-                            messages.success(request, "РћС‡РёСЃС‚РєР° РІС‹РїРѕР»РЅРµРЅР° СѓСЃРїРµС€РЅРѕ.")
+                            messages.success(request, "Очистка выполнена успешно.")
 
                         if has_errors:
                             messages.warning(
                                 request,
-                                f"РћС‡РёСЃС‚РєР° Р·Р°РІРµСЂС€РµРЅР° СЃ РѕС€РёР±РєР°РјРё: {cleanup_summary.get('errors', 0)}. РџРѕРґСЂРѕР±РЅРѕСЃС‚Рё РІ РїСЂРѕС‚РѕРєРѕР»Рµ.",
+                                f"Очистка завершена с ошибками: {cleanup_summary.get('errors', 0)}. Подробности в протоколе.",
                             )
                     except Exception as exc:
-                        messages.error(request, f"РћС€РёР±РєР° РѕС‡РёСЃС‚РєРё: {exc}")
+                        messages.error(request, f"Ошибка очистки: {exc}")
                         latest_log = _create_service_exchange_log(
                             request,
                             action=ServiceExchangeLog.Action.CLEANUP,
@@ -857,7 +857,7 @@ def service_exchange(request):
 
         if action == "archive":
             if not request.user.is_superuser:
-                messages.error(request, "РџСѓРЅРєС‚ РђСЂС…РёРІ Р±Р°Р·С‹ РґРѕСЃС‚СѓРїРµРЅ С‚РѕР»СЊРєРѕ СЃСѓРїРµСЂРїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.")
+                messages.error(request, "Пункт Архив базы доступен только суперпользователю.")
             else:
                 try:
                     archive_summary = _archive_database_copy()
@@ -870,11 +870,11 @@ def service_exchange(request):
                         dry_run=False,
                         file_name=archive_summary.get("target", ""),
                         summary=archive_summary,
-                        message="РђСЂС…РёРІ Р±Р°Р·С‹ СЃРѕС…СЂР°РЅРµРЅ",
+                        message="Архив базы сохранен",
                     )
-                    messages.success(request, f"РђСЂС…РёРІ Р±Р°Р·С‹ СЃРѕС…СЂР°РЅРµРЅ РІ РїР°РїРєСѓ arxiv: {archive_summary.get('file_name')}.")
+                    messages.success(request, f"Архив базы сохранен в папку arxiv: {archive_summary.get('file_name')}.")
                 except Exception as exc:
-                    messages.error(request, f"РћС€РёР±РєР° Р°СЂС…РёРІР°С†РёРё: {exc}")
+                    messages.error(request, f"Ошибка архивации: {exc}")
                     latest_log = _create_service_exchange_log(
                         request,
                         action=ServiceExchangeLog.Action.ARCHIVE,
@@ -1027,11 +1027,11 @@ def _normalize_characteristic_input(c_type: EquipmentCharacteristicType, request
     if value_kind == EquipmentCharacteristicType.ValueKind.NUMBER:
         raw_number = request.POST.get("characteristic_value_number", "").strip().replace(",", ".")
         if not raw_number:
-            return "", "Р—Р°РїРѕР»РЅРёС‚Рµ С‡РёСЃР»РѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё."
+            return "", "Заполните числовое значение характеристики."
         try:
             parsed = Decimal(raw_number)
         except InvalidOperation:
-            return "", "Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅРѕРµ С‡РёСЃР»Рѕ РґР»СЏ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё."
+            return "", "Введите корректное число для характеристики."
         normalized = f"{parsed:f}".rstrip("0").rstrip(".")
         return (normalized or "0"), None
 
@@ -1039,98 +1039,16 @@ def _normalize_characteristic_input(c_type: EquipmentCharacteristicType, request
         tags_raw = request.POST.get("characteristic_value_tags", "")
         tags = _parse_tags_value(tags_raw)
         if not tags:
-            return "", "Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ СЌР»РµРјРµРЅС‚ СЃРїРёСЃРєР° С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє."
+            return "", "Добавьте хотя бы один элемент списка характеристик."
         return ", ".join(tags), None
 
     raw_text = request.POST.get("characteristic_value", "").strip()
     if not raw_text:
-        return "", "Р—Р°РїРѕР»РЅРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё."
+        return "", "Заполните значение характеристики."
     return raw_text, None
 
 
-MODEL_CHARACTERISTIC_FIELD_MAP = {
-    "weight": "weight",
-    "dimensions": "dimensions",
-    "color": "color",
-    "format_print": "format_print",
-    "device_type": "device_type",
-    "speed_print": "speed_print",
-}
-
 CHARACTERISTIC_DISPLAY_CODES = ("device_type", "color", "format_print", "speed_print", "weight", "dimensions")
-
-
-def _normalize_legacy_field_value(field_name: str, value: str):
-    if field_name == "speed_print":
-        return int(value) if value else None
-    return value
-
-
-def _extract_legacy_characteristic_value(instance, field_name: str) -> str:
-    raw_value = getattr(instance, field_name, None)
-    if field_name == "speed_print":
-        return "" if raw_value is None else str(raw_value)
-    return (raw_value or "").strip()
-
-
-def _sync_legacy_field_from_characteristic(instance, characteristic_code: str, characteristic_model, owner_field_name: str) -> None:
-    field_name = MODEL_CHARACTERISTIC_FIELD_MAP.get(characteristic_code)
-    if not field_name:
-        return
-
-    value = ""
-    record = (
-        characteristic_model.objects.select_related("characteristic_type")
-        .filter(**{owner_field_name: instance, "characteristic_type__code": characteristic_code})
-        .first()
-    )
-    if record:
-        value = (record.value or "").strip()
-
-    normalized_value = _normalize_legacy_field_value(field_name, value)
-
-    if getattr(instance, field_name, None) != normalized_value:
-        setattr(instance, field_name, normalized_value)
-        instance.save(update_fields=[field_name, "updated_at"])
-
-
-def _ensure_legacy_characteristics(instance, characteristic_model, owner_field_name: str) -> None:
-    if not instance.pk:
-        return
-
-    type_map = {
-        item.code: item
-        for item in EquipmentCharacteristicType.objects.filter(code__in=MODEL_CHARACTERISTIC_FIELD_MAP.keys())
-    }
-    existing_codes = set(
-        characteristic_model.objects.filter(**{owner_field_name: instance})
-        .values_list("characteristic_type__code", flat=True)
-    )
-
-    for code, field_name in MODEL_CHARACTERISTIC_FIELD_MAP.items():
-        if code in existing_codes:
-            continue
-
-        characteristic_type = type_map.get(code)
-        if not characteristic_type:
-            continue
-
-        value = _extract_legacy_characteristic_value(instance, field_name)
-        if not value:
-            continue
-
-        characteristic_model.objects.get_or_create(
-            **{owner_field_name: instance, "characteristic_type": characteristic_type},
-            defaults={"value": value},
-        )
-
-
-def _sync_product_model_legacy_field_from_characteristic(model: ProductModel, characteristic_code: str) -> None:
-    _sync_legacy_field_from_characteristic(model, characteristic_code, ProductModelCharacteristic, "product_model")
-
-
-def _ensure_product_model_legacy_characteristics(model: ProductModel) -> None:
-    _ensure_legacy_characteristics(model, ProductModelCharacteristic, "product_model")
 
 
 def _annotate_characteristic_values(queryset, characteristic_model, owner_field_name: str, prefix: str = "char_"):
@@ -1188,7 +1106,7 @@ def _egrul_lookup_by_inn(inn: str) -> dict | None:
 
     first = rows[0]
     address = ""
-    for key in ("a", "address", "addr", "fullAddress", "РђРґСЂРµСЃРџРѕР»РЅ"):
+    for key in ("a", "address", "addr", "fullAddress", "АдресПолн"):
         address = _strip_tags(first.get(key, ""))
         if address:
             break
@@ -1352,18 +1270,18 @@ def egrul_lookup(request):
     inn_raw = request.GET.get("inn", "")
     inn = _extract_inn(inn_raw)
     if len(inn) not in {10, 12}:
-        return JsonResponse({"ok": False, "error": "Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅС‹Р№ РРќРќ (10 РёР»Рё 12 С†РёС„СЂ)."}, status=400)
+        return JsonResponse({"ok": False, "error": "Введите корректный ИНН (10 или 12 цифр)."}, status=400)
 
     try:
         result = _egrul_lookup_by_inn(inn)
     except Exception:
         return JsonResponse(
-            {"ok": False, "error": "РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РґР°РЅРЅС‹Рµ Р•Р“Р Р®Р›. РџРѕРїСЂРѕР±СѓР№С‚Рµ РїРѕР·Р¶Рµ."},
+            {"ok": False, "error": "Не удалось получить данные ЕГРЮЛ. Попробуйте позже."},
             status=502,
         )
 
     if not result:
-        return JsonResponse({"ok": False, "error": "РџРѕ СѓРєР°Р·Р°РЅРЅРѕРјСѓ РРќРќ РґР°РЅРЅС‹Рµ РЅРµ РЅР°Р№РґРµРЅС‹."}, status=404)
+        return JsonResponse({"ok": False, "error": "По указанному ИНН данные не найдены."}, status=404)
 
     return JsonResponse({"ok": True, "data": result})
 
@@ -1400,7 +1318,7 @@ def organizations(request):
         if action == "delete" and org_id:
             target = get_object_or_404(Organization, id=org_id)
             target.delete()
-            messages.success(request, "РћСЂРіР°РЅРёР·Р°С†РёСЏ СѓРґР°Р»РµРЅР°.")
+            messages.success(request, "Организация удалена.")
             return redirect(_organizations_redirect_url(request))
 
         if action == "add_contact" and org_id:
@@ -1411,7 +1329,7 @@ def organizations(request):
                 contact = contact_form.save(commit=False)
                 contact.organization = editing_organization
                 contact.save()
-                messages.success(request, "РљРѕРЅС‚Р°РєС‚ РґРѕР±Р°РІР»РµРЅ.")
+                messages.success(request, "Контакт добавлен.")
                 return redirect(_organizations_redirect_url(request, edit_id=editing_organization.id))
 
         if action == "update_contact":
@@ -1424,7 +1342,7 @@ def organizations(request):
                 form = OrganizationForm(instance=editing_organization)
                 if contact_form.is_valid():
                     contact_form.save()
-                    messages.success(request, "РљРѕРЅС‚Р°РєС‚ РѕР±РЅРѕРІР»РµРЅ.")
+                    messages.success(request, "Контакт обновлен.")
                     return redirect(_organizations_redirect_url(request, edit_id=editing_organization.id))
 
         if action == "delete_contact":
@@ -1433,7 +1351,7 @@ def organizations(request):
                 contact = get_object_or_404(OrganizationContact, id=contact_id)
                 organization_for_redirect = contact.organization_id
                 contact.delete()
-                messages.success(request, "РљРѕРЅС‚Р°РєС‚ СѓРґР°Р»РµРЅ.")
+                messages.success(request, "Контакт удален.")
                 return redirect(_organizations_redirect_url(request, edit_id=organization_for_redirect))
 
         if action == "add_address" and org_id:
@@ -1445,7 +1363,7 @@ def organizations(request):
                     organization=editing_organization,
                     address=address,
                 )
-                messages.success(request, "РђРґСЂРµСЃ РїСЂРёРІСЏР·Р°РЅ.")
+                messages.success(request, "Адрес привязан.")
             return redirect(_organizations_redirect_url(request, edit_id=editing_organization.id, fragment="addresses-section"))
 
         if action == "remove_address" and org_id:
@@ -1456,7 +1374,7 @@ def organizations(request):
                     organization=editing_organization,
                     address_id=address_id,
                 ).delete()
-                messages.success(request, "РђРґСЂРµСЃ РѕС‚РєСЂРµРїР»С‘РЅ.")
+                messages.success(request, "Адрес откреплён.")
             return redirect(_organizations_redirect_url(request, edit_id=editing_organization.id, fragment="addresses-section"))
 
         if action == "set_main_office" and org_id:
@@ -1475,7 +1393,7 @@ def organizations(request):
                 ).exclude(pk=address_link.pk).update(main_office=False)
             address_link.main_office = make_main_office
             address_link.save(update_fields=["main_office"])
-            messages.success(request, "РџСЂРёР·РЅР°Рє РіР»Р°РІРЅРѕРіРѕ РѕС„РёСЃР° РѕР±РЅРѕРІР»С‘РЅ.")
+            messages.success(request, "Признак главного офиса обновлён.")
             return redirect(_organizations_redirect_url(request, edit_id=editing_organization.id, fragment="addresses-section"))
 
         if org_id:
@@ -1489,9 +1407,9 @@ def organizations(request):
         if form.is_valid():
             saved = form.save()
             if is_new_organization:
-                messages.success(request, f"РћСЂРіР°РЅРёР·Р°С†РёСЏ {saved.name} СЃРѕР·РґР°РЅР°. РўРµРїРµСЂСЊ РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ РєРѕРЅС‚Р°РєС‚ РЅРёР¶Рµ.")
+                messages.success(request, f"Организация {saved.name} создана. Теперь можно добавить контакт ниже.")
             else:
-                messages.success(request, f"РћСЂРіР°РЅРёР·Р°С†РёСЏ {saved.name} СЃРѕС…СЂР°РЅРµРЅР°.")
+                messages.success(request, f"Организация {saved.name} сохранена.")
             return redirect(_organizations_redirect_url(request, edit_id=saved.id, fragment="contacts-section"))
     else:
         form = OrganizationForm(instance=editing_organization)
@@ -1583,7 +1501,7 @@ def service_centers(request):
         if action == "delete" and service_center_id:
             target = get_object_or_404(ServiceCenter, id=service_center_id)
             target.delete()
-            messages.success(request, "РЎРµСЂРІРёСЃРЅС‹Р№ С†РµРЅС‚СЂ СѓРґР°Р»РµРЅ.")
+            messages.success(request, "Сервисный центр удален.")
             return redirect(_service_centers_redirect_url(request))
 
         if action == "add_contact" and service_center_id:
@@ -1594,7 +1512,7 @@ def service_centers(request):
                 contact = contact_form.save(commit=False)
                 contact.service_center = editing_service_center
                 contact.save()
-                messages.success(request, "РљРѕРЅС‚Р°РєС‚ РґРѕР±Р°РІР»РµРЅ.")
+                messages.success(request, "Контакт добавлен.")
                 return redirect(_service_centers_redirect_url(request, edit_id=editing_service_center.id))
 
         if action == "update_contact":
@@ -1607,7 +1525,7 @@ def service_centers(request):
                 form = ServiceCenterForm(instance=editing_service_center)
                 if contact_form.is_valid():
                     contact_form.save()
-                    messages.success(request, "РљРѕРЅС‚Р°РєС‚ РѕР±РЅРѕРІР»РµРЅ.")
+                    messages.success(request, "Контакт обновлен.")
                     return redirect(_service_centers_redirect_url(request, edit_id=editing_service_center.id))
 
         if action == "delete_contact":
@@ -1616,7 +1534,7 @@ def service_centers(request):
                 contact = get_object_or_404(ServiceCenterContact, id=contact_id)
                 service_center_for_redirect = contact.service_center_id
                 contact.delete()
-                messages.success(request, "РљРѕРЅС‚Р°РєС‚ СѓРґР°Р»РµРЅ.")
+                messages.success(request, "Контакт удален.")
                 return redirect(_service_centers_redirect_url(request, edit_id=service_center_for_redirect))
 
         if action == "add_address" and service_center_id:
@@ -1628,7 +1546,7 @@ def service_centers(request):
                     service_center=editing_service_center,
                     address=address,
                 )
-                messages.success(request, "РђРґСЂРµСЃ РїСЂРёРІСЏР·Р°РЅ.")
+                messages.success(request, "Адрес привязан.")
             return redirect(_service_centers_redirect_url(request, edit_id=editing_service_center.id, fragment="addresses-section"))
 
         if action == "remove_address" and service_center_id:
@@ -1639,7 +1557,7 @@ def service_centers(request):
                     service_center=editing_service_center,
                     address_id=address_id,
                 ).delete()
-                messages.success(request, "РђРґСЂРµСЃ РѕС‚РєСЂРµРїР»С‘РЅ.")
+                messages.success(request, "Адрес откреплён.")
             return redirect(_service_centers_redirect_url(request, edit_id=editing_service_center.id, fragment="addresses-section"))
 
         if action == "set_main_office" and service_center_id:
@@ -1658,7 +1576,7 @@ def service_centers(request):
                 ).exclude(pk=address_link.pk).update(main_office=False)
             address_link.main_office = make_main_office
             address_link.save(update_fields=["main_office"])
-            messages.success(request, "РџСЂРёР·РЅР°Рє РіР»Р°РІРЅРѕРіРѕ РѕС„РёСЃР° РѕР±РЅРѕРІР»С‘РЅ.")
+            messages.success(request, "Признак главного офиса обновлён.")
             return redirect(_service_centers_redirect_url(request, edit_id=editing_service_center.id, fragment="addresses-section"))
 
         if service_center_id:
@@ -1672,9 +1590,9 @@ def service_centers(request):
         if form.is_valid():
             saved = form.save()
             if is_new_service_center:
-                messages.success(request, f"РЎРµСЂРІРёСЃРЅС‹Р№ С†РµРЅС‚СЂ {saved.name} СЃРѕР·РґР°РЅ. РўРµРїРµСЂСЊ РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ РєРѕРЅС‚Р°РєС‚ РЅРёР¶Рµ.")
+                messages.success(request, f"Сервисный центр {saved.name} создан. Теперь можно добавить контакт ниже.")
             else:
-                messages.success(request, f"РЎРµСЂРІРёСЃРЅС‹Р№ С†РµРЅС‚СЂ {saved.name} СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Сервисный центр {saved.name} сохранен.")
             return redirect(_service_centers_redirect_url(request, edit_id=saved.id, fragment="contacts-section"))
     else:
         form = ServiceCenterForm(instance=editing_service_center)
@@ -1749,24 +1667,24 @@ def users(request):
             if create_form.is_valid():
                 new_user = create_form.save()
                 new_user.groups.set(create_form.cleaned_data["groups"])
-                messages.success(request, "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ.")
+                messages.success(request, "Пользователь успешно создан.")
                 return redirect("users")
 
         elif action == "add_group":
             group_form = GroupCreateForm(request.POST)
             if group_form.is_valid():
                 group_form.save()
-                messages.success(request, "Р“СЂСѓРїРїР° СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅР°.")
+                messages.success(request, "Группа успешно создана.")
                 return redirect("users")
 
         elif action == "delete_user":
             user_id = request.POST.get("user_id")
             target_user = get_object_or_404(User, id=user_id)
             if target_user == request.user:
-                messages.error(request, "РќРµР»СЊР·СЏ СѓРґР°Р»РёС‚СЊ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.")
+                messages.error(request, "Нельзя удалить текущего пользователя.")
             else:
                 target_user.delete()
-                messages.success(request, "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓРґР°Р»РµРЅ.")
+                messages.success(request, "Пользователь удален.")
             return redirect("users")
 
         elif action == "update_groups":
@@ -1774,7 +1692,7 @@ def users(request):
             target_user = get_object_or_404(User, id=user_id)
             selected_group_ids = request.POST.getlist("groups")
             target_user.groups.set(groups.filter(id__in=selected_group_ids))
-            messages.success(request, f"Р“СЂСѓРїРїС‹ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ {target_user.username} РѕР±РЅРѕРІР»РµРЅС‹.")
+            messages.success(request, f"Группы пользователя {target_user.username} обновлены.")
             return redirect("users")
 
     context = {
@@ -1845,7 +1763,7 @@ def serviceman(request):
         if action == "delete" and target_id:
             target = get_object_or_404(ServiceMan, id=target_id)
             target.delete()
-            messages.success(request, "РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ СѓРґР°Р»РµРЅ.")
+            messages.success(request, "Сервисный инженер удален.")
             return redirect(redirect_url)
 
         if target_id:
@@ -1859,9 +1777,9 @@ def serviceman(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ {saved.full_name} СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Сервисный инженер {saved.full_name} создан.")
             else:
-                messages.success(request, f"РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ {saved.full_name} СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Сервисный инженер {saved.full_name} сохранен.")
             params["edit"] = saved.id
             return redirect(f"{reverse('serviceman')}?{urlencode(params)}")
     else:
@@ -1970,7 +1888,7 @@ def product_category(request):
         if action == "delete" and target_id:
             target = get_object_or_404(ProductCategory, id=target_id)
             target.delete()
-            messages.success(request, "РљР°С‚РµРіРѕСЂРёСЏ С‚РѕРІР°СЂР° СѓРґР°Р»РµРЅР°.")
+            messages.success(request, "Категория товара удалена.")
             return redirect(redirect_url)
 
         if target_id:
@@ -1984,9 +1902,9 @@ def product_category(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"РљР°С‚РµРіРѕСЂРёСЏ В«{saved.name}В» СЃРѕР·РґР°РЅР°.")
+                messages.success(request, f"Категория \"{saved.name}\" создана.")
             else:
-                messages.success(request, f"РљР°С‚РµРіРѕСЂРёСЏ В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅР°.")
+                messages.success(request, f"Категория \"{saved.name}\" сохранена.")
             params["edit"] = saved.id
             return redirect(f"{reverse('product_category')}?{urlencode(params)}")
     else:
@@ -2096,7 +2014,7 @@ def brand(request):
         if action == "delete" and target_id:
             target = get_object_or_404(Brand, id=target_id)
             target.delete()
-            messages.success(request, "Р‘СЂРµРЅРґ СѓРґР°Р»РµРЅ.")
+            messages.success(request, "Бренд удален.")
             return redirect(redirect_url)
 
         if target_id:
@@ -2110,9 +2028,9 @@ def brand(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"Р‘СЂРµРЅРґ В«{saved.name}В» СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Бренд \"{saved.name}\" создан.")
             else:
-                messages.success(request, f"Р‘СЂРµРЅРґ В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Бренд \"{saved.name}\" сохранен.")
             params["edit"] = saved.id
             return redirect(f"{reverse('brand')}?{urlencode(params)}")
     else:
@@ -2210,7 +2128,7 @@ def equipment_characteristic_type(request):
         if action == "delete" and target_id:
             target = get_object_or_404(EquipmentCharacteristicType, id=target_id)
             target.delete()
-            messages.success(request, "РўРёРї С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё СѓРґР°Р»РµРЅ.")
+            messages.success(request, "Тип характеристики удален.")
             return redirect(redirect_url)
 
         if target_id:
@@ -2224,9 +2142,9 @@ def equipment_characteristic_type(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"РўРёРї С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё В«{saved.name}В» СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Тип характеристики \"{saved.name}\" создан.")
             else:
-                messages.success(request, f"РўРёРї С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Тип характеристики \"{saved.name}\" сохранен.")
             params["edit"] = saved.id
             return redirect(f"{reverse('equipment_characteristic_type')}?{urlencode(params)}")
     else:
@@ -2287,8 +2205,8 @@ def product_model(request):
         "category": "category__name",
         "brand": "brand__name",
         "sku": "sku",
-        "device_type": "device_type",
-        "speed_print": "speed_print",
+        "device_type": "char_device_type",
+        "speed_print": "char_speed_print_number",
     }
 
     if sort not in sort_map:
@@ -2300,8 +2218,12 @@ def product_model(request):
     if direction == "desc":
         order_field = f"-{order_field}"
 
-    models_qs = ProductModel.objects.select_related("brand", "category").annotate(
-        attachment_count=Count("attachments", distinct=True),
+    models_qs = _annotate_characteristic_values(
+        ProductModel.objects.select_related("brand", "category").annotate(
+            attachment_count=Count("attachments", distinct=True),
+        ),
+        ProductModelCharacteristic,
+        "product_model_id",
     )
     if normalized_query:
         models_qs = models_qs.annotate(
@@ -2328,7 +2250,7 @@ def product_model(request):
         except ValueError:
             pass
     if device_type_filter:
-        models_qs = models_qs.filter(device_type=device_type_filter)
+        models_qs = models_qs.filter(char_device_type=device_type_filter)
     if attachment_filter == "with":
         models_qs = models_qs.filter(attachment_count__gt=0)
     elif attachment_filter == "without":
@@ -2339,10 +2261,11 @@ def product_model(request):
     all_brands = Brand.objects.all().order_by("name")
     all_categories = ProductCategory.objects.all().order_by("group", "name")
     all_device_types = (
-        ProductModel.objects.exclude(device_type="")
-        .values_list("device_type", flat=True)
+        ProductModelCharacteristic.objects.filter(characteristic_type__code="device_type")
+        .exclude(value="")
+        .values_list("value", flat=True)
         .distinct()
-        .order_by("device_type")
+        .order_by("value")
     )
 
     sort_links = {}
@@ -2387,9 +2310,6 @@ def product_model(request):
 def product_model_edit(request, model_id=None):
     editing_model = get_object_or_404(ProductModel, id=model_id) if model_id else None
     attachment_form = CatalogAttachmentForm()
-
-    if editing_model:
-        _ensure_product_model_legacy_characteristics(editing_model)
 
     back_query = request.GET.get("q", "").strip()
     back_brand = request.GET.get("brand", "").strip()
@@ -2470,7 +2390,7 @@ def product_model_edit(request, model_id=None):
             if action == "add_characteristic":
                 characteristic_type_id = request.POST.get("characteristic_type_id", "").strip()
                 if not characteristic_type_id.isdigit():
-                    messages.error(request, "Р’С‹Р±РµСЂРёС‚Рµ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєСѓ.")
+                    messages.error(request, "Выберите характеристику.")
                 else:
                     c_type = get_object_or_404(EquipmentCharacteristicType, id=int(characteristic_type_id))
                     value, error_message = _normalize_characteristic_input(c_type, request)
@@ -2482,16 +2402,15 @@ def product_model_edit(request, model_id=None):
                             characteristic_type=c_type,
                             defaults={"value": value},
                         )
-                        _sync_product_model_legacy_field_from_characteristic(editing_model, c_type.code)
                         if created:
-                            messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РґРѕР±Р°РІР»РµРЅР°.")
+                            messages.success(request, "Характеристика добавлена.")
                         else:
-                            messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                            messages.success(request, "Характеристика обновлена.")
 
             if action == "update_characteristic":
                 characteristic_id = request.POST.get("characteristic_id", "").strip()
                 if not characteristic_id.isdigit():
-                    messages.error(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ РЅРµ РІС‹Р±СЂР°РЅР°.")
+                    messages.error(request, "Характеристика для редактирования не выбрана.")
                 else:
                     characteristic = get_object_or_404(
                         ProductModelCharacteristic,
@@ -2505,17 +2424,14 @@ def product_model_edit(request, model_id=None):
                     else:
                         characteristic.value = value
                         characteristic.save(update_fields=["value", "updated_at"])
-                        _sync_product_model_legacy_field_from_characteristic(editing_model, c_type.code)
-                        messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                        messages.success(request, "Характеристика обновлена.")
 
             if action == "remove_characteristic":
                 characteristic_id = request.POST.get("characteristic_id", "").strip()
                 if characteristic_id.isdigit():
                     characteristic = get_object_or_404(ProductModelCharacteristic, id=int(characteristic_id), product_model=editing_model)
-                    char_code = characteristic.characteristic_type.code
                     characteristic.delete()
-                    _sync_product_model_legacy_field_from_characteristic(editing_model, char_code)
-                    messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° СѓРґР°Р»РµРЅР°.")
+                    messages.success(request, "Характеристика удалена.")
 
             qs = urlencode(post_back_params)
             edit_url = reverse("product_model_edit", kwargs={"model_id": editing_model.id})
@@ -2525,7 +2441,7 @@ def product_model_edit(request, model_id=None):
             attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
             if attachment_form.is_valid():
                 _save_catalog_attachment("product_model", editing_model, ProductModelAttachment, attachment_form)
-                messages.success(request, "Р’Р»РѕР¶РµРЅРёРµ РґРѕР±Р°РІР»РµРЅРѕ.")
+                messages.success(request, "Вложение добавлено.")
             else:
                 messages.error(request, _first_form_error(attachment_form))
 
@@ -2542,7 +2458,7 @@ def product_model_edit(request, model_id=None):
                     product_model=editing_model,
                 )
                 attachment.delete()
-                messages.success(request, "Р’Р»РѕР¶РµРЅРёРµ СѓРґР°Р»РµРЅРѕ.")
+                messages.success(request, "Вложение удалено.")
 
             qs = urlencode(post_back_params)
             edit_url = reverse("product_model_edit", kwargs={"model_id": editing_model.id})
@@ -2552,9 +2468,9 @@ def product_model_edit(request, model_id=None):
         if form.is_valid():
             saved = form.save()
             if editing_model:
-                messages.success(request, f"РўРµС…РЅРёРєР° В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅР°.")
+                messages.success(request, f"Техника \"{saved.name}\" сохранена.")
             else:
-                messages.success(request, f"РўРµС…РЅРёРєР° В«{saved.name}В» СЃРѕР·РґР°РЅР°.")
+                messages.success(request, f"Техника \"{saved.name}\" создана.")
 
             qs = urlencode(post_back_params)
             edit_url = reverse("product_model_edit", kwargs={"model_id": saved.id})
@@ -2808,15 +2724,15 @@ def product_model_consumables(request, model_id):
                 consumable = get_object_or_404(Consumable, id=consumable_id)
                 _, created = ConsumableCompatibility.objects.get_or_create(consumable=consumable, product_model=model)
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {consumable.name}")
+                    messages.success(request, f"Связь добавлена: {consumable.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
         elif action == "remove_relation":
             relation_id = request.POST.get("relation_id")
             if relation_id:
                 relation = get_object_or_404(ConsumableCompatibility, id=relation_id, product_model=model)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
 
         redirect_params = dict(back_params)
         if relation_query:
@@ -2904,15 +2820,15 @@ def product_model_parts(request, model_id):
                 part = get_object_or_404(Part, id=part_id)
                 _, created = PartCompatibility.objects.get_or_create(part=part, product_model=model)
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {part.name}")
+                    messages.success(request, f"Связь добавлена: {part.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
         elif action == "remove_relation":
             relation_id = request.POST.get("relation_id")
             if relation_id:
                 relation = get_object_or_404(PartCompatibility, id=relation_id, product_model=model)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
 
         redirect_params = dict(back_params)
         if relation_query:
@@ -2991,7 +2907,7 @@ def brand_delete(request, brand_id):
     if request.method == "POST":
         item_name = item.name
         item.delete()
-        messages.success(request, f"Р‘СЂРµРЅРґ В«{item_name}В» СѓРґР°Р»РµРЅ.")
+        messages.success(request, f"Бренд \"{item_name}\" удален.")
         return redirect(back_url)
 
     context = {
@@ -3157,10 +3073,10 @@ def consumable(request):
         if action == "delete" and target_id:
             target = get_object_or_404(Consumable, id=target_id)
             if target.compatibilities.exists():
-                messages.error(request, "РќРµР»СЊР·СЏ СѓРґР°Р»РёС‚СЊ СЂР°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р», РїРѕРєР° РµСЃС‚СЊ СЃРІСЏР·Рё СЃ С‚РµС…РЅРёРєРѕР№.")
+                messages.error(request, "Нельзя удалить расходный материал, пока есть связи с техникой.")
                 return redirect(redirect_url)
             target.delete()
-            messages.success(request, "Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» СѓРґР°Р»РµРЅ.")
+            messages.success(request, "Расходный материал удален.")
             return redirect(redirect_url)
 
         if action == "add_relation" and target_id:
@@ -3173,9 +3089,9 @@ def consumable(request):
                     product_model=product_model,
                 )
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {product_model.name}")
+                    messages.success(request, f"Связь добавлена: {product_model.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
             params["edit"] = editing_consumable.id
             return redirect(f"{reverse('consumable')}?{urlencode(params)}")
 
@@ -3185,7 +3101,7 @@ def consumable(request):
             if relation_id:
                 relation = get_object_or_404(ConsumableCompatibility, id=relation_id, consumable=editing_consumable)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
             params["edit"] = editing_consumable.id
             return redirect(f"{reverse('consumable')}?{urlencode(params)}")
 
@@ -3200,9 +3116,9 @@ def consumable(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{saved.name}В» СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Расходный материал «{saved.name}» создан.")
             else:
-                messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Расходный материал «{saved.name}» сохранен.")
             params["edit"] = saved.id
             return redirect(f"{reverse('consumable')}?{urlencode(params)}")
     else:
@@ -3409,10 +3325,10 @@ def part(request):
         if action == "delete" and target_id:
             target = get_object_or_404(Part, id=target_id)
             if target.compatibilities.exists():
-                messages.error(request, "РќРµР»СЊР·СЏ СѓРґР°Р»РёС‚СЊ Р·Р°РїС‡Р°СЃС‚СЊ, РїРѕРєР° РµСЃС‚СЊ СЃРІСЏР·Рё СЃ С‚РµС…РЅРёРєРѕР№.")
+                messages.error(request, "Нельзя удалить запчасть, пока есть связи с техникой.")
                 return redirect(redirect_url)
             target.delete()
-            messages.success(request, "Р—Р°РїС‡Р°СЃС‚СЊ СѓРґР°Р»РµРЅР°.")
+            messages.success(request, "Запчасть удалена.")
             return redirect(redirect_url)
 
         if action == "add_relation" and target_id:
@@ -3425,9 +3341,9 @@ def part(request):
                     product_model=product_model,
                 )
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {product_model.name}")
+                    messages.success(request, f"Связь добавлена: {product_model.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
             params["edit"] = editing_part.id
             return redirect(f"{reverse('part')}?{urlencode(params)}")
 
@@ -3437,7 +3353,7 @@ def part(request):
             if relation_id:
                 relation = get_object_or_404(PartCompatibility, id=relation_id, part=editing_part)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
             params["edit"] = editing_part.id
             return redirect(f"{reverse('part')}?{urlencode(params)}")
 
@@ -3452,9 +3368,9 @@ def part(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{saved.name}В» СЃРѕР·РґР°РЅР°.")
+                messages.success(request, f"Запчасть \"{saved.name}\" создана.")
             else:
-                messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅР°.")
+                messages.success(request, f"Запчасть \"{saved.name}\" сохранена.")
             params["edit"] = saved.id
             return redirect(f"{reverse('part')}?{urlencode(params)}")
     else:
@@ -3634,7 +3550,7 @@ def consumable_edit(request, consumable_id=None):
             if action == "add_characteristic":
                 characteristic_type_id = request.POST.get("characteristic_type_id", "").strip()
                 if not characteristic_type_id.isdigit():
-                    messages.error(request, "Р’С‹Р±РµСЂРёС‚Рµ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєСѓ.")
+                    messages.error(request, "Выберите характеристику.")
                 else:
                     c_type = get_object_or_404(EquipmentCharacteristicType, id=int(characteristic_type_id))
                     value, error_message = _normalize_characteristic_input(c_type, request)
@@ -3647,14 +3563,14 @@ def consumable_edit(request, consumable_id=None):
                             defaults={"value": value},
                         )
                         if created:
-                            messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РґРѕР±Р°РІР»РµРЅР°.")
+                            messages.success(request, "Характеристика добавлена.")
                         else:
-                            messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                            messages.success(request, "Характеристика обновлена.")
 
             if action == "update_characteristic":
                 characteristic_id = request.POST.get("characteristic_id", "").strip()
                 if not characteristic_id.isdigit():
-                    messages.error(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ РЅРµ РІС‹Р±СЂР°РЅР°.")
+                    messages.error(request, "Характеристика для редактирования не выбрана.")
                 else:
                     characteristic = get_object_or_404(
                         ConsumableCharacteristic,
@@ -3668,7 +3584,7 @@ def consumable_edit(request, consumable_id=None):
                     else:
                         characteristic.value = value
                         characteristic.save(update_fields=["value", "updated_at"])
-                        messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                        messages.success(request, "Характеристика обновлена.")
 
             if action == "remove_characteristic":
                 characteristic_id = request.POST.get("characteristic_id", "").strip()
@@ -3679,7 +3595,7 @@ def consumable_edit(request, consumable_id=None):
                         consumable=editing_consumable,
                     )
                     characteristic.delete()
-                    messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° СѓРґР°Р»РµРЅР°.")
+                    messages.success(request, "Характеристика удалена.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3697,9 +3613,9 @@ def consumable_edit(request, consumable_id=None):
                     product_model=product_model,
                 )
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {product_model.name}")
+                    messages.success(request, f"Связь добавлена: {product_model.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3713,7 +3629,7 @@ def consumable_edit(request, consumable_id=None):
             if relation_id:
                 relation = get_object_or_404(ConsumableCompatibility, id=relation_id, consumable=editing_consumable)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3726,7 +3642,7 @@ def consumable_edit(request, consumable_id=None):
             attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
             if attachment_form.is_valid():
                 _save_catalog_attachment("consumable", editing_consumable, ConsumableAttachment, attachment_form)
-                messages.success(request, "Р’Р»РѕР¶РµРЅРёРµ РґРѕР±Р°РІР»РµРЅРѕ.")
+                messages.success(request, "Вложение добавлено.")
             else:
                 messages.error(request, _first_form_error(attachment_form))
 
@@ -3746,7 +3662,7 @@ def consumable_edit(request, consumable_id=None):
                     consumable=editing_consumable,
                 )
                 attachment.delete()
-                messages.success(request, "Р’Р»РѕР¶РµРЅРёРµ СѓРґР°Р»РµРЅРѕ.")
+                messages.success(request, "Вложение удалено.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3759,9 +3675,9 @@ def consumable_edit(request, consumable_id=None):
         if form.is_valid():
             saved = form.save()
             if editing_consumable:
-                messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Расходный материал \"{saved.name}\" сохранен.")
             else:
-                messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{saved.name}В» СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Расходный материал \"{saved.name}\" создан.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3887,7 +3803,7 @@ def part_edit(request, part_id=None):
             if action == "add_characteristic":
                 characteristic_type_id = request.POST.get("characteristic_type_id", "").strip()
                 if not characteristic_type_id.isdigit():
-                    messages.error(request, "Р’С‹Р±РµСЂРёС‚Рµ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєСѓ.")
+                    messages.error(request, "Выберите характеристику.")
                 else:
                     c_type = get_object_or_404(EquipmentCharacteristicType, id=int(characteristic_type_id))
                     value, error_message = _normalize_characteristic_input(c_type, request)
@@ -3900,14 +3816,14 @@ def part_edit(request, part_id=None):
                             defaults={"value": value},
                         )
                         if created:
-                            messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РґРѕР±Р°РІР»РµРЅР°.")
+                            messages.success(request, "Характеристика добавлена.")
                         else:
-                            messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                            messages.success(request, "Характеристика обновлена.")
 
             if action == "update_characteristic":
                 characteristic_id = request.POST.get("characteristic_id", "").strip()
                 if not characteristic_id.isdigit():
-                    messages.error(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ РЅРµ РІС‹Р±СЂР°РЅР°.")
+                    messages.error(request, "Характеристика для редактирования не выбрана.")
                 else:
                     characteristic = get_object_or_404(
                         PartCharacteristic,
@@ -3921,7 +3837,7 @@ def part_edit(request, part_id=None):
                     else:
                         characteristic.value = value
                         characteristic.save(update_fields=["value", "updated_at"])
-                        messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                        messages.success(request, "Характеристика обновлена.")
 
             if action == "remove_characteristic":
                 characteristic_id = request.POST.get("characteristic_id", "").strip()
@@ -3932,7 +3848,7 @@ def part_edit(request, part_id=None):
                         part=editing_part,
                     )
                     characteristic.delete()
-                    messages.success(request, "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° СѓРґР°Р»РµРЅР°.")
+                    messages.success(request, "Характеристика удалена.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3950,9 +3866,9 @@ def part_edit(request, part_id=None):
                     product_model=product_model,
                 )
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {product_model.name}")
+                    messages.success(request, f"Связь добавлена: {product_model.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3966,7 +3882,7 @@ def part_edit(request, part_id=None):
             if relation_id:
                 relation = get_object_or_404(PartCompatibility, id=relation_id, part=editing_part)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -3979,7 +3895,7 @@ def part_edit(request, part_id=None):
             attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
             if attachment_form.is_valid():
                 _save_catalog_attachment("part", editing_part, PartAttachment, attachment_form)
-                messages.success(request, "Р’Р»РѕР¶РµРЅРёРµ РґРѕР±Р°РІР»РµРЅРѕ.")
+                messages.success(request, "Вложение добавлено.")
             else:
                 messages.error(request, _first_form_error(attachment_form))
 
@@ -3999,7 +3915,7 @@ def part_edit(request, part_id=None):
                     part=editing_part,
                 )
                 attachment.delete()
-                messages.success(request, "Р’Р»РѕР¶РµРЅРёРµ СѓРґР°Р»РµРЅРѕ.")
+                messages.success(request, "Вложение удалено.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -4012,9 +3928,9 @@ def part_edit(request, part_id=None):
         if form.is_valid():
             saved = form.save()
             if editing_part:
-                messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅР°.")
+                messages.success(request, f"Запчасть \"{saved.name}\" сохранена.")
             else:
-                messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{saved.name}В» СЃРѕР·РґР°РЅР°.")
+                messages.success(request, f"Запчасть \"{saved.name}\" создана.")
 
             edit_params = dict(post_back_params)
             if relation_query:
@@ -4110,15 +4026,15 @@ def consumable_product_models(request, consumable_id):
                 model = get_object_or_404(ProductModel, id=product_model_id)
                 _, created = ConsumableCompatibility.objects.get_or_create(consumable=consumable, product_model=model)
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {model.name}")
+                    messages.success(request, f"Связь добавлена: {model.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
         elif action == "remove_relation":
             relation_id = request.POST.get("relation_id")
             if relation_id:
                 relation = get_object_or_404(ConsumableCompatibility, id=relation_id, consumable=consumable)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
 
         redirect_params = dict(back_params)
         if relation_query:
@@ -4205,15 +4121,15 @@ def part_product_models(request, part_id):
                 model = get_object_or_404(ProductModel, id=product_model_id)
                 _, created = PartCompatibility.objects.get_or_create(part=part, product_model=model)
                 if created:
-                    messages.success(request, f"РЎРІСЏР·СЊ РґРѕР±Р°РІР»РµРЅР°: {model.name}")
+                    messages.success(request, f"Связь добавлена: {model.name}")
                 else:
-                    messages.info(request, "РўР°РєР°СЏ СЃРІСЏР·СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.")
+                    messages.info(request, "Такая связь уже существует.")
         elif action == "remove_relation":
             relation_id = request.POST.get("relation_id")
             if relation_id:
                 relation = get_object_or_404(PartCompatibility, id=relation_id, part=part)
                 relation.delete()
-                messages.success(request, "РЎРІСЏР·СЊ СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Связь удалена.")
 
         redirect_params = dict(back_params)
         if relation_query:
@@ -4296,11 +4212,11 @@ def consumable_delete(request, consumable_id):
 
     if request.method == "POST":
         if not can_delete:
-            messages.error(request, "РќРµР»СЊР·СЏ СѓРґР°Р»РёС‚СЊ СЂР°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р», РїРѕРєР° РµСЃС‚СЊ СЃРІСЏР·Рё СЃ С‚РµС…РЅРёРєРѕР№.")
+            messages.error(request, "Нельзя удалить расходный материал, пока есть связи с техникой.")
             return redirect(reverse("consumable_edit", kwargs={"consumable_id": item.id}))
         item_name = item.name
         item.delete()
-        messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{item_name}В» СѓРґР°Р»РµРЅ.")
+        messages.success(request, f"Расходный материал «{item_name}» удален.")
         return redirect(back_url)
 
     context = {
@@ -4491,9 +4407,9 @@ def work_directory_edit(request, work_id=None):
                 if not created:
                     link.quantity = quantity
                     link.save(update_fields=["quantity"])
-                    messages.success(request, f"РљРѕР»РёС‡РµСЃС‚РІРѕ СЂР°СЃС…РѕРґРЅРѕРіРѕ РјР°С‚РµСЂРёР°Р»Р° В«{consumable.name}В» РѕР±РЅРѕРІР»РµРЅРѕ.")
+                    messages.success(request, f"Количество расходного материала «{consumable.name}» обновлено.")
                 else:
-                    messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{consumable.name}В» РґРѕР±Р°РІР»РµРЅ.")
+                    messages.success(request, f"Расходный материал «{consumable.name}» добавлен.")
 
             edit_params = dict(post_back_params)
             if consumable_query:
@@ -4509,7 +4425,7 @@ def work_directory_edit(request, work_id=None):
             if link_id:
                 link = get_object_or_404(WorkDirectoryConsumable, id=link_id, work=editing_work)
                 link.delete()
-                messages.success(request, "РЎС‚СЂРѕРєР° СЂР°СЃС…РѕРґРЅРѕРіРѕ РјР°С‚РµСЂРёР°Р»Р° СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Строка расходного материала удалена.")
 
             edit_params = dict(post_back_params)
             if consumable_query:
@@ -4538,9 +4454,9 @@ def work_directory_edit(request, work_id=None):
                 if not created:
                     link.quantity = quantity
                     link.save(update_fields=["quantity"])
-                    messages.success(request, f"РљРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїС‡Р°СЃС‚Рё В«{part.name}В» РѕР±РЅРѕРІР»РµРЅРѕ.")
+                    messages.success(request, f"Количество запчасти «{part.name}» обновлено.")
                 else:
-                    messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{part.name}В» РґРѕР±Р°РІР»РµРЅР°.")
+                    messages.success(request, f"Запчасть «{part.name}» добавлена.")
 
             edit_params = dict(post_back_params)
             if consumable_query:
@@ -4556,7 +4472,7 @@ def work_directory_edit(request, work_id=None):
             if link_id:
                 link = get_object_or_404(WorkDirectoryPart, id=link_id, work=editing_work)
                 link.delete()
-                messages.success(request, "РЎС‚СЂРѕРєР° Р·Р°РїС‡Р°СЃС‚Рё СѓРґР°Р»РµРЅР°.")
+                messages.success(request, "Строка запчасти удалена.")
 
             edit_params = dict(post_back_params)
             if consumable_query:
@@ -4571,9 +4487,9 @@ def work_directory_edit(request, work_id=None):
         if form.is_valid():
             saved = form.save()
             if editing_work:
-                messages.success(request, f"Р Р°Р±РѕС‚Р° В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅР°.")
+                messages.success(request, f"Работа \"{saved.name}\" сохранена.")
             else:
-                messages.success(request, f"Р Р°Р±РѕС‚Р° В«{saved.name}В» СЃРѕР·РґР°РЅР°.")
+                messages.success(request, f"Работа \"{saved.name}\" создана.")
 
             edit_params = dict(post_back_params)
             if consumable_query:
@@ -4678,7 +4594,7 @@ def work_directory_delete(request, work_id):
     if request.method == "POST":
         item_name = item.name
         item.delete()
-        messages.success(request, f"Р Р°Р±РѕС‚Р° В«{item_name}В» СѓРґР°Р»РµРЅР°.")
+        messages.success(request, f"Работа \"{item_name}\" удалена.")
         return redirect(back_url)
 
     context = {
@@ -4821,7 +4737,7 @@ def status_directory(request):
         if action == "delete" and target_id:
             target = get_object_or_404(StatusDirectory, id=target_id)
             target.delete()
-            messages.success(request, "РЎС‚Р°С‚СѓСЃ СѓРґР°Р»РµРЅ.")
+            messages.success(request, "Статус удален.")
             return redirect(redirect_url)
 
         if target_id:
@@ -4835,9 +4751,9 @@ def status_directory(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"РЎС‚Р°С‚СѓСЃ В«{saved.name}В» СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Статус \"{saved.name}\" создан.")
             else:
-                messages.success(request, f"РЎС‚Р°С‚СѓСЃ В«{saved.name}В» СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Статус \"{saved.name}\" сохранен.")
             params["edit"] = saved.id
             return redirect(f"{reverse('status_directory')}?{urlencode(params)}")
     else:
@@ -4988,9 +4904,9 @@ def address_directory(request):
         if form.is_valid():
             saved = form.save()
             if is_new:
-                messages.success(request, f"РђРґСЂРµСЃ В«{saved}В» СЃРѕР·РґР°РЅ.")
+                messages.success(request, f"Адрес \"{saved}\" создан.")
             else:
-                messages.success(request, f"РђРґСЂРµСЃ В«{saved}В» СЃРѕС…СЂР°РЅРµРЅ.")
+                messages.success(request, f"Адрес \"{saved}\" сохранен.")
             params["edit"] = saved.id
             return redirect(f"{reverse('address_directory')}?{urlencode(params)}")
     else:
@@ -5082,7 +4998,7 @@ def _ensure_repair_document_from_acceptance_link(link: AcceptanceDocumentEquipme
 
     status_acceptance, _ = StatusDirectory.objects.get_or_create(
         code=10,
-        defaults={"name": "РџСЂРёРµРјРєР°", "description": "РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ СЃС‚Р°С‚СѓСЃ РїСЂРёРµРјРєРё"},
+        defaults={"name": "Приемка", "description": "Автоматический статус приемки"},
     )
 
     repair_document = RepairDocument.objects.create(
@@ -5094,7 +5010,7 @@ def _ensure_repair_document_from_acceptance_link(link: AcceptanceDocumentEquipme
         client_equipment=link.client_equipment,
         malfunction="",
         work_performed="",
-        note=f"РЎРѕР·РґР°РЅРѕ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёР· РґРѕРєСѓРјРµРЅС‚Р° РїСЂРёРµРјРєРё #{acceptance_document.id}",
+        note=f"Создано автоматически из документа приемки #{acceptance_document.id}",
     )
 
     link.repair_document = repair_document
@@ -5150,22 +5066,22 @@ def acceptance_document_edit(request, document_id=None):
                         generated_count += 1
 
                 if editing_document:
-                    messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ РїСЂРёРµРјРєРё #{saved.id} СЃРѕС…СЂР°РЅРµРЅ.")
+                    messages.success(request, f"Документ приемки #{saved.id} сохранен.")
                 else:
-                    messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ РїСЂРёРµРјРєРё #{saved.id} СЃРѕР·РґР°РЅ.")
+                    messages.success(request, f"Документ приемки #{saved.id} создан.")
 
                 if generated_count:
-                    messages.success(request, f"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°РЅРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ СЂРµРјРѕРЅС‚Р°: {generated_count}.")
+                    messages.success(request, f"Автоматически создано документов ремонта: {generated_count}.")
 
                 return redirect(reverse("acceptance_document_edit", kwargs={"document_id": saved.id}))
 
         elif action == "search_serial":
             if not editing_document:
-                messages.error(request, "РЎРЅР°С‡Р°Р»Р° СЃРѕС…СЂР°РЅРёС‚Рµ РґРѕРєСѓРјРµРЅС‚, Р·Р°С‚РµРј РІС‹РїРѕР»РЅСЏР№С‚Рµ РїРѕРёСЃРє РїРѕ СЃРµСЂРёР№РЅРѕРјСѓ РЅРѕРјРµСЂСѓ.")
+                messages.error(request, "Сначала сохраните документ, затем выполняйте поиск по серийному номеру.")
             else:
                 serial_query = request.POST.get("serial_query", "").strip()
                 if not serial_query:
-                    messages.error(request, "Р’РІРµРґРёС‚Рµ СЃРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ РґР»СЏ РїРѕРёСЃРєР°.")
+                    messages.error(request, "Введите серийный номер для поиска.")
                 else:
                     found_equipment = ClientEquipment.objects.filter(
                         organization_id=editing_document.organization_id,
@@ -5178,16 +5094,16 @@ def acceptance_document_edit(request, document_id=None):
                             client_equipment__serial_number__iexact=serial_query,
                         ).exists()
                         if duplicate_serial:
-                            messages.info(request, "РўРµС…РЅРёРєР° СЃ СЌС‚РёРј СЃРµСЂРёР№РЅС‹Рј РЅРѕРјРµСЂРѕРј СѓР¶Рµ РґРѕР±Р°РІР»РµРЅР° РІ С‚РµРєСѓС‰РёР№ РґРѕРєСѓРјРµРЅС‚.")
+                            messages.info(request, "Техника с этим серийным номером уже добавлена в текущий документ.")
                         else:
                             link, _ = AcceptanceDocumentEquipment.objects.get_or_create(
                                 acceptance_document=editing_document,
                                 client_equipment=found_equipment,
                             )
                             created_repair = _ensure_repair_document_from_acceptance_link(link)
-                            messages.success(request, f"РўРµС…РЅРёРєР° СЃ СЃРµСЂРёР№РЅС‹Рј РЅРѕРјРµСЂРѕРј {serial_query} РґРѕР±Р°РІР»РµРЅР° РІ РґРѕРєСѓРјРµРЅС‚.")
+                            messages.success(request, f"Техника с серийным номером {serial_query} добавлена в документ.")
                             if created_repair:
-                                messages.success(request, "Р”Р»СЏ РґРѕР±Р°РІР»РµРЅРЅРѕР№ С‚РµС…РЅРёРєРё Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°РЅ РґРѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р°.")
+                                messages.success(request, "Для добавленной техники автоматически создан документ ремонта.")
                         redirect_params = {"serial": serial_query}
                         return redirect(
                             f"{reverse('acceptance_document_edit', kwargs={'document_id': editing_document.id})}?{urlencode(redirect_params)}"
@@ -5208,7 +5124,7 @@ def acceptance_document_edit(request, document_id=None):
                     acceptance_document=editing_document,
                 )
                 link.delete()
-                messages.success(request, "РЎС‚СЂРѕРєР° С‚РµС…РЅРёРєРё СѓРґР°Р»РµРЅР° РёР· РґРѕРєСѓРјРµРЅС‚Р° РїСЂРёРµРјРєРё.")
+                messages.success(request, "Строка техники удалена из документа приемки.")
             return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
     else:
         initial = {"date": timezone.localdate()} if not editing_document else {}
@@ -5249,7 +5165,7 @@ def acceptance_document_add_equipment(request, document_id):
     serial = request.GET.get("serial", "").strip() if request.method == "GET" else request.POST.get("serial_number", "").strip()
 
     if not serial:
-        messages.error(request, "РќРµ РїРµСЂРµРґР°РЅ СЃРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ С‚РµС…РЅРёРєРё.")
+        messages.error(request, "Не передан серийный номер для добавления техники.")
         return redirect(reverse("acceptance_document_edit", kwargs={"document_id": acceptance_document.id}))
 
     if request.method == "POST":
@@ -5267,7 +5183,7 @@ def acceptance_document_add_equipment(request, document_id):
                 client_equipment=equipment,
             )
             _ensure_repair_document_from_acceptance_link(link)
-            messages.success(request, f"РўРµС…РЅРёРєР° СЃ СЃРµСЂРёР№РЅС‹Рј РЅРѕРјРµСЂРѕРј {serial} СЃРѕР·РґР°РЅР° Рё РґРѕР±Р°РІР»РµРЅР° РІ РґРѕРєСѓРјРµРЅС‚.")
+            messages.success(request, f"Техника с серийным номером {serial} создана и добавлена в документ.")
             return redirect(reverse("acceptance_document_edit", kwargs={"document_id": acceptance_document.id}))
     else:
         form = AcceptanceEquipmentCreateForm(initial={"serial_number": serial})
@@ -5291,7 +5207,7 @@ def _ensure_repair_document_from_shipment_link(link: ShipmentDocumentEquipment) 
 
     status_shipped, _ = StatusDirectory.objects.get_or_create(
         code=120,
-        defaults={"name": "РћС‚РіСЂСѓР¶РµРЅРѕ РєР»РёРµРЅС‚Сѓ", "description": "РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ СЃС‚Р°С‚СѓСЃ РѕС‚РіСЂСѓР·РєРё"},
+        defaults={"name": "Отгружено клиенту", "description": "Автоматический статус отгрузки"},
     )
 
     repair_document = RepairDocument.objects.create(
@@ -5303,7 +5219,7 @@ def _ensure_repair_document_from_shipment_link(link: ShipmentDocumentEquipment) 
         client_equipment=link.client_equipment,
         malfunction="",
         work_performed="",
-        note=f"РЎРѕР·РґР°РЅРѕ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёР· РґРѕРєСѓРјРµРЅС‚Р° РѕС‚РіСЂСѓР·РєРё #{shipment_document.id}",
+        note=f"Создано автоматически из документа отгрузки #{shipment_document.id}",
     )
 
     link.repair_document = repair_document
@@ -5358,22 +5274,22 @@ def shipment_document_edit(request, document_id=None):
                         generated_count += 1
 
                 if editing_document:
-                    messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ РѕС‚РіСЂСѓР·РєРё #{saved.id} СЃРѕС…СЂР°РЅРµРЅ.")
+                    messages.success(request, f"Документ отгрузки #{saved.id} сохранен.")
                 else:
-                    messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ РѕС‚РіСЂСѓР·РєРё #{saved.id} СЃРѕР·РґР°РЅ.")
+                    messages.success(request, f"Документ отгрузки #{saved.id} создан.")
 
                 if generated_count:
-                    messages.success(request, f"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°РЅРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ СЂРµРјРѕРЅС‚Р°: {generated_count}.")
+                    messages.success(request, f"Автоматически создано документов ремонта: {generated_count}.")
 
                 return redirect(reverse("shipment_document_edit", kwargs={"document_id": saved.id}))
 
         elif action == "search_serial":
             if not editing_document:
-                messages.error(request, "РЎРЅР°С‡Р°Р»Р° СЃРѕС…СЂР°РЅРёС‚Рµ РґРѕРєСѓРјРµРЅС‚, Р·Р°С‚РµРј РІС‹РїРѕР»РЅСЏР№С‚Рµ РїРѕРёСЃРє РїРѕ СЃРµСЂРёР№РЅРѕРјСѓ РЅРѕРјРµСЂСѓ.")
+                messages.error(request, "Сначала сохраните документ, затем выполняйте поиск по серийному номеру.")
             else:
                 serial_query = request.POST.get("serial_query", "").strip()
                 if not serial_query:
-                    messages.error(request, "Р’РІРµРґРёС‚Рµ СЃРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ РґР»СЏ РїРѕРёСЃРєР°.")
+                    messages.error(request, "Введите серийный номер для поиска.")
                 else:
                     found_equipment = ClientEquipment.objects.filter(
                         organization_id=editing_document.organization_id,
@@ -5386,18 +5302,18 @@ def shipment_document_edit(request, document_id=None):
                             client_equipment__serial_number__iexact=serial_query,
                         ).exists()
                         if duplicate_serial:
-                            messages.info(request, "РўРµС…РЅРёРєР° СЃ СЌС‚РёРј СЃРµСЂРёР№РЅС‹Рј РЅРѕРјРµСЂРѕРј СѓР¶Рµ РґРѕР±Р°РІР»РµРЅР° РІ С‚РµРєСѓС‰РёР№ РґРѕРєСѓРјРµРЅС‚.")
+                            messages.info(request, "Техника с этим серийным номером уже добавлена в текущий документ.")
                         else:
                             link, _ = ShipmentDocumentEquipment.objects.get_or_create(
                                 shipment_document=editing_document,
                                 client_equipment=found_equipment,
                             )
                             created_repair = _ensure_repair_document_from_shipment_link(link)
-                            messages.success(request, f"РўРµС…РЅРёРєР° СЃ СЃРµСЂРёР№РЅС‹Рј РЅРѕРјРµСЂРѕРј {serial_query} РґРѕР±Р°РІР»РµРЅР° РІ РґРѕРєСѓРјРµРЅС‚.")
+                            messages.success(request, f"Техника с серийным номером {serial_query} добавлена в документ.")
                             if created_repair:
-                                messages.success(request, "Р”Р»СЏ РґРѕР±Р°РІР»РµРЅРЅРѕР№ С‚РµС…РЅРёРєРё Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°РЅ РґРѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р°.")
+                                messages.success(request, "Для добавленной техники автоматически создан документ ремонта.")
                     else:
-                        messages.info(request, "РЎРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ РЅРµ РЅР°Р№РґРµРЅ. РЎС‚СЂРѕРєР° С‚РµС…РЅРёРєРё РЅРµ РґРѕР±Р°РІР»РµРЅР°.")
+                        messages.info(request, "Серийный номер не найден. Строка техники не добавлена.")
 
                     redirect_params = {"serial": serial_query}
                     return redirect(
@@ -5413,7 +5329,7 @@ def shipment_document_edit(request, document_id=None):
                     shipment_document=editing_document,
                 )
                 link.delete()
-                messages.success(request, "РЎС‚СЂРѕРєР° С‚РµС…РЅРёРєРё СѓРґР°Р»РµРЅР° РёР· РґРѕРєСѓРјРµРЅС‚Р° РѕС‚РіСЂСѓР·РєРё.")
+                messages.success(request, "Строка техники удалена из документа отгрузки.")
             return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
     else:
         initial = {"date": timezone.localdate()} if not editing_document else {}
@@ -5467,11 +5383,11 @@ def report_shipment_document(request):
             if document_id.isdigit():
                 document = documents_qs.filter(id=int(document_id)).first()
                 if not document:
-                    messages.warning(request, "Р’С‹Р±СЂР°РЅРЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РЅРµ РЅР°Р№РґРµРЅ РґР»СЏ СѓРєР°Р·Р°РЅРЅРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё Рё РґР°С‚С‹.")
+                    messages.warning(request, "Выбранный документ не найден для указанной организации и даты.")
             elif documents_qs.count() == 1:
                 document = documents_qs.first()
             else:
-                messages.info(request, "РќР°Р№РґРµРЅРѕ РЅРµСЃРєРѕР»СЊРєРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ. Р’С‹Р±РµСЂРёС‚Рµ РЅСѓР¶РЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РІ РїРѕР»Рµ РЅРёР¶Рµ.")
+                messages.info(request, "Найдено несколько документов. Выберите нужный документ в поле ниже.")
 
             if document:
                 linked_equipment = ShipmentDocumentEquipment.objects.select_related(
@@ -5481,35 +5397,35 @@ def report_shipment_document(request):
                     shipment_document=document
                 )
         else:
-            messages.warning(request, "Р”РѕРєСѓРјРµРЅС‚ РѕС‚РіСЂСѓР·РєРё РїРѕ РІС‹Р±СЂР°РЅРЅРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё Рё РґР°С‚Рµ РЅРµ РЅР°Р№РґРµРЅ.")
+            messages.warning(request, "Документ отгрузки по выбранной организации и дате не найден.")
 
     if export_format == "excel":
         if not document:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РѕС‚РіСЂСѓР·РєРё.")
+            messages.warning(request, "Для экспорта выберите конкретный документ отгрузки.")
             return redirect(reverse("report_shipment_document"))
 
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_shipment_document"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РћС‚РіСЂСѓР·РєР°"
+        sheet.title = "Отгрузка"
 
-        sheet["A1"] = "Р”РѕРєСѓРјРµРЅС‚ РѕС‚РіСЂСѓР·РєРё С‚РµС…РЅРёРєРё"
+        sheet["A1"] = "Документ отгрузки техники"
         sheet["B1"] = f"#{document.id}"
-        sheet["A2"] = "Р”Р°С‚Р°"
+        sheet["A2"] = "Дата"
         sheet["B2"] = document.date.strftime("%d.%m.%Y")
-        sheet["A3"] = "РћСЂРіР°РЅРёР·Р°С†РёСЏ"
+        sheet["A3"] = "Организация"
         sheet["B3"] = document.organization.name
-        sheet["A4"] = "РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ"
+        sheet["A4"] = "Сервисный инженер"
         sheet["B4"] = document.serviceman.full_name if document.serviceman_id else "-"
 
         header_row = 6
-        headers = ["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РЎРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ", "РРЅРІРµРЅС‚Р°СЂРЅС‹Р№ РЅРѕРјРµСЂ", "РЎС‡РµС‚С‡РёРє"]
+        headers = ["Наименование", "Серийный номер", "Инвентарный номер", "Счетчик"]
         for col, header in enumerate(headers, start=1):
             cell = sheet.cell(row=header_row, column=col, value=header)
             cell.font = Font(bold=True)
@@ -5578,11 +5494,11 @@ def report_acceptance_document(request):
             if document_id.isdigit():
                 document = documents_qs.filter(id=int(document_id)).first()
                 if not document:
-                    messages.warning(request, "Р’С‹Р±СЂР°РЅРЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РЅРµ РЅР°Р№РґРµРЅ РґР»СЏ СѓРєР°Р·Р°РЅРЅРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё Рё РґР°С‚С‹.")
+                    messages.warning(request, "Выбранный документ не найден для указанной организации и даты.")
             elif documents_qs.count() == 1:
                 document = documents_qs.first()
             else:
-                messages.info(request, "РќР°Р№РґРµРЅРѕ РЅРµСЃРєРѕР»СЊРєРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ. Р’С‹Р±РµСЂРёС‚Рµ РЅСѓР¶РЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РІ РїРѕР»Рµ РЅРёР¶Рµ.")
+                messages.info(request, "Найдено несколько документов. Выберите нужный документ в поле ниже.")
 
             if document:
                 linked_equipment = AcceptanceDocumentEquipment.objects.select_related(
@@ -5592,35 +5508,35 @@ def report_acceptance_document(request):
                     acceptance_document=document
                 )
         else:
-            messages.warning(request, "Р”РѕРєСѓРјРµРЅС‚ РїСЂРёРµРјРєРё РїРѕ РІС‹Р±СЂР°РЅРЅРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё Рё РґР°С‚Рµ РЅРµ РЅР°Р№РґРµРЅ.")
+            messages.warning(request, "Документ приемки по выбранной организации и дате не найден.")
 
     if export_format == "excel":
         if not document:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РїСЂРёРµРјРєРё.")
+            messages.warning(request, "Для экспорта выберите конкретный документ приемки.")
             return redirect(reverse("report_acceptance_document"))
 
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_acceptance_document"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РџСЂРёРµРјРєР°"
+        sheet.title = "Приемка"
 
-        sheet["A1"] = "Р”РѕРєСѓРјРµРЅС‚ РїСЂРёРµРјРєРё С‚РµС…РЅРёРєРё"
+        sheet["A1"] = "Документ приемки техники"
         sheet["B1"] = f"#{document.id}"
-        sheet["A2"] = "Р”Р°С‚Р°"
+        sheet["A2"] = "Дата"
         sheet["B2"] = document.date.strftime("%d.%m.%Y")
-        sheet["A3"] = "РћСЂРіР°РЅРёР·Р°С†РёСЏ"
+        sheet["A3"] = "Организация"
         sheet["B3"] = document.organization.name
-        sheet["A4"] = "РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ"
+        sheet["A4"] = "Сервисный инженер"
         sheet["B4"] = document.serviceman.full_name if document.serviceman_id else "-"
 
         header_row = 6
-        headers = ["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РЎРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ", "РРЅРІРµРЅС‚Р°СЂРЅС‹Р№ РЅРѕРјРµСЂ", "РЎС‡РµС‚С‡РёРє"]
+        headers = ["Наименование", "Серийный номер", "Инвентарный номер", "Счетчик"]
         for col, header in enumerate(headers, start=1):
             cell = sheet.cell(row=header_row, column=col, value=header)
             cell.font = Font(bold=True)
@@ -5738,7 +5654,7 @@ def report_repair_document(request):
     if document_id.isdigit():
         selected_document = documents_qs.filter(id=int(document_id)).first()
         if not selected_document:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р° РЅРµ РЅР°Р№РґРµРЅ СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё РїРѕРёСЃРєР°.")
+            messages.warning(request, "Выбранный документ ремонта не найден с текущими параметрами поиска.")
 
     if selected_document:
         linked_works = RepairDocumentWork.objects.select_related("work").filter(repair_document=selected_document)
@@ -5751,35 +5667,35 @@ def report_repair_document(request):
 
     if export_format == "excel":
         if not selected_document:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р°.")
+            messages.warning(request, "Для экспорта выберите конкретный документ ремонта.")
             return redirect(reverse("report_repair_document"))
 
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_repair_document"))
 
         workbook = Workbook()
         sheet = workbook.active
         sheet.title = "Р РµРјРѕРЅС‚"
 
-        sheet["A1"] = "Р”РѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р°"
+        sheet["A1"] = "Документ ремонта"
         sheet["B1"] = f"#{selected_document.id}"
         sheet["A2"] = "Р”Р°С‚Р°"
         sheet["B2"] = selected_document.date.strftime("%d.%m.%Y")
-        sheet["A3"] = "РћСЂРіР°РЅРёР·Р°С†РёСЏ"
+        sheet["A3"] = "Организация"
         sheet["B3"] = selected_document.organization.name
-        sheet["A4"] = "РЎРµСЂРІРёСЃРЅС‹Р№ РёРЅР¶РµРЅРµСЂ"
+        sheet["A4"] = "Сервисный инженер"
         sheet["B4"] = selected_document.serviceman.full_name if selected_document.serviceman_id else "-"
-        sheet["A5"] = "РЎС‚Р°С‚СѓСЃ"
+        sheet["A5"] = "Статус"
         sheet["B5"] = selected_document.status.name if selected_document.status_id else "-"
 
         row = 7
         sheet.cell(row=row, column=1, value="Р Р°Р±РѕС‚С‹").font = Font(bold=True)
         row += 1
-        for col, header in enumerate(["РљРѕРґ", "РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "Р¦РµРЅР°", "РљРѕР»РёС‡РµСЃС‚РІРѕ"], start=1):
+        for col, header in enumerate(["РљРѕРґ", "Наименование", "Р¦РµРЅР°", "Количество"], start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
         for link in linked_works:
@@ -5789,13 +5705,13 @@ def report_repair_document(request):
             sheet.cell(row=row, column=4, value=link.quantity)
             row += 1
         if not linked_works.exists():
-            sheet.cell(row=row, column=1, value="Р Р°Р±РѕС‚С‹ РЅРµ РґРѕР±Р°РІР»РµРЅС‹")
+            sheet.cell(row=row, column=1, value="Работы не добавлены")
             row += 1
 
         row += 1
-        sheet.cell(row=row, column=1, value="Р—Р°РїС‡Р°СЃС‚Рё").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Запчасти").font = Font(bold=True)
         row += 1
-        for col, header in enumerate(["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РђСЂС‚РёРєСѓР»", "Р‘СЂРµРЅРґ", "Р’СЃРµРіРѕ", "Р СѓС‡РЅРѕРµ", "РР· СЂР°Р±РѕС‚"], start=1):
+        for col, header in enumerate(["Наименование", "Артикул", "Бренд", "Всего", "Ручное", "Из работ"], start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
         for link in linked_parts:
@@ -5807,13 +5723,13 @@ def report_repair_document(request):
             sheet.cell(row=row, column=6, value=link.work_quantity)
             row += 1
         if not linked_parts.exists():
-            sheet.cell(row=row, column=1, value="Р—Р°РїС‡Р°СЃС‚Рё РЅРµ РґРѕР±Р°РІР»РµРЅС‹")
+            sheet.cell(row=row, column=1, value="Запчасти не добавлены")
             row += 1
 
         row += 1
-        sheet.cell(row=row, column=1, value="Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Расходные материалы").font = Font(bold=True)
         row += 1
-        for col, header in enumerate(["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РђСЂС‚РёРєСѓР»", "Р‘СЂРµРЅРґ", "Р’СЃРµРіРѕ", "Р СѓС‡РЅРѕРµ", "РР· СЂР°Р±РѕС‚"], start=1):
+        for col, header in enumerate(["Наименование", "Артикул", "Бренд", "Всего", "Ручное", "Из работ"], start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
         for link in linked_consumables:
@@ -5825,7 +5741,7 @@ def report_repair_document(request):
             sheet.cell(row=row, column=6, value=link.work_quantity)
             row += 1
         if not linked_consumables.exists():
-            sheet.cell(row=row, column=1, value="Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹ РЅРµ РґРѕР±Р°РІР»РµРЅС‹")
+            sheet.cell(row=row, column=1, value="Расходные материалы не добавлены")
 
         sheet.column_dimensions["A"].width = 30
         sheet.column_dimensions["B"].width = 35
@@ -5969,7 +5885,7 @@ def report_part(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅР°СЏ Р·Р°РїРёСЃСЊ РЅРµ РЅР°Р№РґРµРЅР° СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранная запись не найдена с текущими параметрами фильтрации.")
         else:
             linked_models = ProductModel.objects.select_related("brand", "category").filter(
                 part_links__part=selected_item
@@ -5982,17 +5898,17 @@ def report_part(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_part"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "Р—Р°РїС‡Р°СЃС‚Рё"
+        sheet.title = "Запчасти"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїРёСЃРєСѓ Р·Р°РїС‡Р°СЃС‚РµР№"
+        sheet["A1"] = "Отчет по списку запчастей"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РђСЂС‚РёРєСѓР»", "Р‘СЂРµРЅРґ", "РљР°С‚РµРіРѕСЂРёСЏ", "РўРёРї СѓСЃС‚СЂРѕР№СЃС‚РІР°", "РЎР°Р№С‚"]
+        headers = ["Наименование", "Артикул", "Р‘СЂРµРЅРґ", "Категория", "Тип устройства", "РЎР°Р№С‚"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -6007,7 +5923,7 @@ def report_part(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 35
         sheet.column_dimensions["B"].width = 22
@@ -6030,13 +5946,13 @@ def report_part(request):
         filename = _build_filtered_list_filename(
             "directory_part_report",
             [
-                ("РїРѕРёСЃРє", query),
-                ("С‚РµС…РЅРёРєР°", model_name_filter),
+                ("поиск", query),
+                ("техника", model_name_filter),
                 ("Р±СЂРµРЅРґ", brand_name),
-                ("РєР°С‚РµРіРѕСЂРёСЏ", category_name),
-                ("С‚РёРї", device_type_filter),
+                ("категория", category_name),
+                ("тип", device_type_filter),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -6048,35 +5964,35 @@ def report_part(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅСѓСЋ Р·Р°РїРёСЃСЊ Р·Р°РїС‡Р°СЃС‚Рё.")
+            messages.warning(request, "Для экспорта выберите конкретную запись запчасти.")
             return redirect(reverse("report_part"))
 
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_part"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "Р—Р°РїС‡Р°СЃС‚СЊ"
+        sheet.title = "Запчасть"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ Р·Р°РїС‡Р°СЃС‚Рё"
+        sheet["A1"] = "Отчет по запчасти"
         sheet["B1"] = selected_item.name
-        sheet["A2"] = "РђСЂС‚РёРєСѓР»"
+        sheet["A2"] = "Артикул"
         sheet["B2"] = selected_item.sku or "-"
         sheet["A3"] = "Р‘СЂРµРЅРґ"
         sheet["B3"] = selected_item.brand.name if selected_item.brand_id else "-"
-        sheet["A4"] = "РљР°С‚РµРіРѕСЂРёСЏ"
+        sheet["A4"] = "Категория"
         sheet["B4"] = str(selected_item.category) if selected_item.category_id else "-"
-        sheet["A5"] = "РўРёРї СѓСЃС‚СЂРѕР№СЃС‚РІР°"
+        sheet["A5"] = "Тип устройства"
         sheet["B5"] = selected_item.char_device_type or "-"
 
         row = 7
-        sheet.cell(row=row, column=1, value="РџСЂРёРІСЏР·РєРё Рє С‚РµС…РЅРёРєРµ").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Привязки к технике").font = Font(bold=True)
         row += 1
-        headers = ["РўРµС…РЅРёРєР°", "Р‘СЂРµРЅРґ", "РљР°С‚РµРіРѕСЂРёСЏ", "РђСЂС‚РёРєСѓР»"]
+        headers = ["Техника", "Р‘СЂРµРЅРґ", "Категория", "Артикул"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
@@ -6087,7 +6003,7 @@ def report_part(request):
             sheet.cell(row=row, column=4, value=model.sku or "-")
             row += 1
         if not linked_models.exists():
-            sheet.cell(row=row, column=1, value="РџСЂРёРІСЏР·РєРё Рє С‚РµС…РЅРёРєРµ РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚")
+            sheet.cell(row=row, column=1, value="Привязки к технике отсутствуют")
 
         sheet.column_dimensions["A"].width = 35
         sheet.column_dimensions["B"].width = 30
@@ -6237,7 +6153,7 @@ def report_consumable(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅР°СЏ Р·Р°РїРёСЃСЊ РЅРµ РЅР°Р№РґРµРЅР° СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранная запись не найдена с текущими параметрами фильтрации.")
         else:
             linked_models = ProductModel.objects.select_related("brand", "category").filter(
                 consumable_links__consumable=selected_item
@@ -6250,17 +6166,17 @@ def report_consumable(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_consumable"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹"
+        sheet.title = "Расходные материалы"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїРёСЃРєСѓ СЂР°СЃС…РѕРґРЅС‹С… РјР°С‚РµСЂРёР°Р»РѕРІ"
+        sheet["A1"] = "Отчет по списку расходных материалов"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РђСЂС‚РёРєСѓР»", "Р‘СЂРµРЅРґ", "РљР°С‚РµРіРѕСЂРёСЏ", "РўРёРї СѓСЃС‚СЂРѕР№СЃС‚РІР°", "РЎР°Р№С‚"]
+        headers = ["Наименование", "Артикул", "Р‘СЂРµРЅРґ", "Категория", "Тип устройства", "РЎР°Р№С‚"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -6275,7 +6191,7 @@ def report_consumable(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 35
         sheet.column_dimensions["B"].width = 22
@@ -6298,13 +6214,13 @@ def report_consumable(request):
         filename = _build_filtered_list_filename(
             "directory_consumable_report",
             [
-                ("РїРѕРёСЃРє", query),
-                ("С‚РµС…РЅРёРєР°", model_name_filter),
+                ("поиск", query),
+                ("техника", model_name_filter),
                 ("Р±СЂРµРЅРґ", brand_name),
-                ("РєР°С‚РµРіРѕСЂРёСЏ", category_name),
-                ("С‚РёРї", device_type_filter),
+                ("категория", category_name),
+                ("тип", device_type_filter),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -6316,35 +6232,35 @@ def report_consumable(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅСѓСЋ Р·Р°РїРёСЃСЊ СЂР°СЃС…РѕРґРЅРѕРіРѕ РјР°С‚РµСЂРёР°Р»Р°.")
+            messages.warning(request, "Для экспорта выберите конкретную запись расходного материала.")
             return redirect(reverse("report_consumable"))
 
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_consumable"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р»"
+        sheet.title = "Расходный материал"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЂР°СЃС…РѕРґРЅРѕРјСѓ РјР°С‚РµСЂРёР°Р»Сѓ"
+        sheet["A1"] = "Отчет по расходному материалу"
         sheet["B1"] = selected_item.name
-        sheet["A2"] = "РђСЂС‚РёРєСѓР»"
+        sheet["A2"] = "Артикул"
         sheet["B2"] = selected_item.sku or "-"
         sheet["A3"] = "Р‘СЂРµРЅРґ"
         sheet["B3"] = selected_item.brand.name if selected_item.brand_id else "-"
-        sheet["A4"] = "РљР°С‚РµРіРѕСЂРёСЏ"
+        sheet["A4"] = "Категория"
         sheet["B4"] = str(selected_item.category) if selected_item.category_id else "-"
-        sheet["A5"] = "РўРёРї СѓСЃС‚СЂРѕР№СЃС‚РІР°"
+        sheet["A5"] = "Тип устройства"
         sheet["B5"] = selected_item.char_device_type or "-"
 
         row = 7
-        sheet.cell(row=row, column=1, value="РџСЂРёРІСЏР·РєРё Рє С‚РµС…РЅРёРєРµ").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Привязки к технике").font = Font(bold=True)
         row += 1
-        headers = ["РўРµС…РЅРёРєР°", "Р‘СЂРµРЅРґ", "РљР°С‚РµРіРѕСЂРёСЏ", "РђСЂС‚РёРєСѓР»"]
+        headers = ["Техника", "Р‘СЂРµРЅРґ", "Категория", "Артикул"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
@@ -6355,7 +6271,7 @@ def report_consumable(request):
             sheet.cell(row=row, column=4, value=model.sku or "-")
             row += 1
         if not linked_models.exists():
-            sheet.cell(row=row, column=1, value="РџСЂРёРІСЏР·РєРё Рє С‚РµС…РЅРёРєРµ РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚")
+            sheet.cell(row=row, column=1, value="Привязки к технике отсутствуют")
 
         sheet.column_dimensions["A"].width = 35
         sheet.column_dimensions["B"].width = 30
@@ -6490,7 +6406,7 @@ def report_work_directory(request):
     if selected_id.isdigit():
         selected_item = works_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅР°СЏ СЂР°Р±РѕС‚Р° РЅРµ РЅР°Р№РґРµРЅР° СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранная работа не найдена с текущими параметрами фильтрации.")
         else:
             selected_consumables = WorkDirectoryConsumable.objects.select_related("consumable__brand").filter(work=selected_item).order_by(
                 "consumable__name", "id"
@@ -6506,17 +6422,17 @@ def report_work_directory(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_work_directory"))
 
         workbook = Workbook()
         sheet = workbook.active
         sheet.title = "Р Р°Р±РѕС‚С‹"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїРёСЃРєСѓ СЂР°Р±РѕС‚"
+        sheet["A1"] = "Отчет по списку работ"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РљРѕРґ", "РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "Р¦РµРЅР°", "Р Р°СЃС…РѕРґРЅРёРєРё", "Р—Р°РїС‡Р°СЃС‚Рё"]
+        headers = ["РљРѕРґ", "Наименование", "Р¦РµРЅР°", "Расходники", "Запчасти"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -6530,7 +6446,7 @@ def report_work_directory(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 16
         sheet.column_dimensions["B"].width = 38
@@ -6543,17 +6459,17 @@ def report_work_directory(request):
         output.seek(0)
 
         component_label_map = {
-            "with_consumables": "СЂР°СЃС…РѕРґРЅРёРєРё",
-            "with_parts": "Р·Р°РїС‡Р°СЃС‚Рё",
+            "with_consumables": "расходники",
+            "with_parts": "запчасти",
             "with_any": "Р»СЋР±С‹Рµ",
         }
         filename = _build_filtered_list_filename(
             "directory_work_report",
             [
-                ("РїРѕРёСЃРє", query),
-                ("РєРѕРјРїРѕРЅРµРЅС‚С‹", component_label_map.get(component_filter, "")),
+                ("поиск", query),
+                ("компоненты", component_label_map.get(component_filter, "")),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -6565,14 +6481,14 @@ def report_work_directory(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅСѓСЋ СЂР°Р±РѕС‚Сѓ.")
+            messages.warning(request, "Для экспорта выберите конкретную работу.")
             return redirect(reverse("report_work_directory"))
 
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_work_directory"))
 
         workbook = Workbook()
@@ -6587,9 +6503,9 @@ def report_work_directory(request):
         sheet["B3"] = float(selected_item.unit_price)
 
         row = 5
-        sheet.cell(row=row, column=1, value="Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Расходные материалы").font = Font(bold=True)
         row += 1
-        for col, header in enumerate(["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РђСЂС‚РёРєСѓР»", "Р‘СЂРµРЅРґ", "РљРѕР»РёС‡РµСЃС‚РІРѕ"], start=1):
+        for col, header in enumerate(["Наименование", "Артикул", "Р‘СЂРµРЅРґ", "Количество"], start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
         for link in selected_consumables:
@@ -6599,13 +6515,13 @@ def report_work_directory(request):
             sheet.cell(row=row, column=4, value=link.quantity)
             row += 1
         if not selected_consumables.exists():
-            sheet.cell(row=row, column=1, value="Р Р°СЃС…РѕРґРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹ РЅРµ РЅР°Р·РЅР°С‡РµРЅС‹")
+            sheet.cell(row=row, column=1, value="Расходные материалы не назначены")
             row += 1
 
         row += 1
-        sheet.cell(row=row, column=1, value="Р—Р°РїС‡Р°СЃС‚Рё").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Запчасти").font = Font(bold=True)
         row += 1
-        for col, header in enumerate(["РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "РђСЂС‚РёРєСѓР»", "Р‘СЂРµРЅРґ", "РљРѕР»РёС‡РµСЃС‚РІРѕ"], start=1):
+        for col, header in enumerate(["Наименование", "Артикул", "Р‘СЂРµРЅРґ", "Количество"], start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
         for link in selected_parts:
@@ -6615,7 +6531,7 @@ def report_work_directory(request):
             sheet.cell(row=row, column=4, value=link.quantity)
             row += 1
         if not selected_parts.exists():
-            sheet.cell(row=row, column=1, value="Р—Р°РїС‡Р°СЃС‚Рё РЅРµ РЅР°Р·РЅР°С‡РµРЅС‹")
+            sheet.cell(row=row, column=1, value="Запчасти не назначены")
 
         sheet.column_dimensions["A"].width = 35
         sheet.column_dimensions["B"].width = 25
@@ -6728,7 +6644,7 @@ def report_address_directory(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅС‹Р№ Р°РґСЂРµСЃ РЅРµ РЅР°Р№РґРµРЅ СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранный адрес не найден с текущими параметрами фильтрации.")
 
     paged_items, page_obj, per_page = _paginate_report_queryset(request, items_qs)
 
@@ -6737,17 +6653,17 @@ def report_address_directory(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_address_directory"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РђРґСЂРµСЃР°"
+        sheet.title = "Адреса"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїСЂР°РІРѕС‡РЅРёРєСѓ Р°РґСЂРµСЃРѕРІ"
+        sheet["A1"] = "Отчет по справочнику адресов"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РќР°СЃРµР»РµРЅРЅС‹Р№ РїСѓРЅРєС‚", "РЈР»РёС†Р°", "Р”РѕРј", "РРЅРґРµРєСЃ", "РџСЂРёРјРµС‡Р°РЅРёРµ"]
+        headers = ["Населенный пункт", "Улица", "Дом", "Индекс", "Примечание"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -6761,7 +6677,7 @@ def report_address_directory(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 28
         sheet.column_dimensions["B"].width = 30
@@ -6776,9 +6692,9 @@ def report_address_directory(request):
         filename = _build_filtered_list_filename(
             "directory_address_report",
             [
-                ("РїРѕРёСЃРє", query),
+                ("поиск", query),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -6790,38 +6706,38 @@ def report_address_directory(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅС‹Р№ Р°РґСЂРµСЃ.")
+            messages.warning(request, "Для экспорта выберите конкретный адрес.")
             return redirect(reverse("report_address_directory"))
 
         try:
             from openpyxl import Workbook
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_address_directory"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РђРґСЂРµСЃ"
+        sheet.title = "Адрес"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ Р°РґСЂРµСЃСѓ"
+        sheet["A1"] = "Отчет по адресу"
         sheet["B1"] = str(selected_item)
-        sheet["A2"] = "РРЅРґРµРєСЃ"
+        sheet["A2"] = "Индекс"
         sheet["B2"] = selected_item.postal_code or "-"
-        sheet["A3"] = "РќР°СЃРµР»РµРЅРЅС‹Р№ РїСѓРЅРєС‚"
+        sheet["A3"] = "Населенный пункт"
         sheet["B3"] = selected_item.locality
         sheet["A4"] = "РЈР»РёС†Р°"
         sheet["B4"] = selected_item.street or "-"
         sheet["A5"] = "Р”РѕРј"
         sheet["B5"] = selected_item.house or "-"
-        sheet["A6"] = "РљРѕСЂРїСѓСЃ"
+        sheet["A6"] = "Корпус"
         sheet["B6"] = selected_item.building or "-"
-        sheet["A7"] = "РЎС‚СЂРѕРµРЅРёРµ"
+        sheet["A7"] = "Строение"
         sheet["B7"] = selected_item.structure or "-"
         sheet["A8"] = "Р­С‚Р°Р¶"
         sheet["B8"] = selected_item.floor or "-"
         sheet["A9"] = "РљРѕРјРЅР°С‚Р°"
         sheet["B9"] = selected_item.room or "-"
-        sheet["A10"] = "РџСЂРёРјРµС‡Р°РЅРёРµ"
+        sheet["A10"] = "Примечание"
         sheet["B10"] = selected_item.note or "-"
 
         sheet.column_dimensions["A"].width = 24
@@ -6910,7 +6826,7 @@ def report_brand(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅС‹Р№ Р±СЂРµРЅРґ РЅРµ РЅР°Р№РґРµРЅ СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранный бренд не найден с текущими параметрами фильтрации.")
 
     paged_items, page_obj, per_page = _paginate_report_queryset(request, items_qs)
 
@@ -6919,17 +6835,17 @@ def report_brand(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_brand"))
 
         workbook = Workbook()
         sheet = workbook.active
         sheet.title = "Р‘СЂРµРЅРґС‹"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїСЂР°РІРѕС‡РЅРёРєСѓ Р±СЂРµРЅРґРѕРІ"
+        sheet["A1"] = "Отчет по справочнику брендов"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РќР°Р·РІР°РЅРёРµ", "РЎР°Р№С‚"]
+        headers = ["Название", "РЎР°Р№С‚"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -6940,7 +6856,7 @@ def report_brand(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 35
         sheet.column_dimensions["B"].width = 45
@@ -6952,9 +6868,9 @@ def report_brand(request):
         filename = _build_filtered_list_filename(
             "directory_brand_report",
             [
-                ("РїРѕРёСЃРє", query),
+                ("поиск", query),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -6966,20 +6882,20 @@ def report_brand(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅС‹Р№ Р±СЂРµРЅРґ.")
+            messages.warning(request, "Для экспорта выберите конкретный бренд.")
             return redirect(reverse("report_brand"))
 
         try:
             from openpyxl import Workbook
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_brand"))
 
         workbook = Workbook()
         sheet = workbook.active
         sheet.title = "Р‘СЂРµРЅРґ"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ Р±СЂРµРЅРґСѓ"
+        sheet["A1"] = "Отчет по бренду"
         sheet["B1"] = selected_item.name
         sheet["A2"] = "РЎР°Р№С‚"
         sheet["B2"] = selected_item.site or "-"
@@ -7071,7 +6987,7 @@ def report_status_directory(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅС‹Р№ СЃС‚Р°С‚СѓСЃ РЅРµ РЅР°Р№РґРµРЅ СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранный статус не найден с текущими параметрами фильтрации.")
 
     paged_items, page_obj, per_page = _paginate_report_queryset(request, items_qs)
 
@@ -7080,17 +6996,17 @@ def report_status_directory(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_status_directory"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РЎС‚Р°С‚СѓСЃС‹"
+        sheet.title = "Статусы"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїСЂР°РІРѕС‡РЅРёРєСѓ СЃС‚Р°С‚СѓСЃРѕРІ"
+        sheet["A1"] = "Отчет по справочнику статусов"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РљРѕРґ", "РЎС‚Р°С‚СѓСЃ", "РћРїРёСЃР°РЅРёРµ"]
+        headers = ["РљРѕРґ", "Статус", "Описание"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -7102,7 +7018,7 @@ def report_status_directory(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 12
         sheet.column_dimensions["B"].width = 30
@@ -7115,9 +7031,9 @@ def report_status_directory(request):
         filename = _build_filtered_list_filename(
             "directory_status_report",
             [
-                ("РїРѕРёСЃРє", query),
+                ("поиск", query),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -7129,24 +7045,24 @@ def report_status_directory(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅС‹Р№ СЃС‚Р°С‚СѓСЃ.")
+            messages.warning(request, "Для экспорта выберите конкретный статус.")
             return redirect(reverse("report_status_directory"))
 
         try:
             from openpyxl import Workbook
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_status_directory"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РЎС‚Р°С‚СѓСЃ"
+        sheet.title = "Статус"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃС‚Р°С‚СѓСЃСѓ"
+        sheet["A1"] = "Отчет по статусу"
         sheet["B1"] = selected_item.name
         sheet["A2"] = "РљРѕРґ"
         sheet["B2"] = selected_item.code
-        sheet["A3"] = "РћРїРёСЃР°РЅРёРµ"
+        sheet["A3"] = "Описание"
         sheet["B3"] = selected_item.description or "-"
 
         sheet.column_dimensions["A"].width = 20
@@ -7239,7 +7155,7 @@ def report_product_category(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅР°СЏ РєР°С‚РµРіРѕСЂРёСЏ РЅРµ РЅР°Р№РґРµРЅР° СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранная категория не найдена с текущими параметрами фильтрации.")
 
     paged_items, page_obj, per_page = _paginate_report_queryset(request, items_qs)
 
@@ -7248,17 +7164,17 @@ def report_product_category(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_product_category"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РљР°С‚РµРіРѕСЂРёРё"
+        sheet.title = "Категории"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ СЃРїСЂР°РІРѕС‡РЅРёРєСѓ РєР°С‚РµРіРѕСЂРёР№ С‚РѕРІР°СЂРѕРІ"
+        sheet["A1"] = "Отчет по справочнику категорий товаров"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["Р“СЂСѓРїРїР°", "РќР°Р·РІР°РЅРёРµ"]
+        headers = ["Группа", "Название"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -7269,7 +7185,7 @@ def report_product_category(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 28
         sheet.column_dimensions["B"].width = 40
@@ -7281,10 +7197,10 @@ def report_product_category(request):
         filename = _build_filtered_list_filename(
             "directory_product_category_report",
             [
-                ("РїРѕРёСЃРє", query),
-                ("РіСЂСѓРїРїР°", group_filter),
+                ("поиск", query),
+                ("группа", group_filter),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -7296,22 +7212,22 @@ def report_product_category(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅСѓСЋ РєР°С‚РµРіРѕСЂРёСЋ.")
+            messages.warning(request, "Для экспорта выберите конкретную категорию.")
             return redirect(reverse("report_product_category"))
 
         try:
             from openpyxl import Workbook
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_product_category"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РљР°С‚РµРіРѕСЂРёСЏ"
+        sheet.title = "Категория"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ РєР°С‚РµРіРѕСЂРёРё С‚РѕРІР°СЂР°"
+        sheet["A1"] = "Отчет по категории товара"
         sheet["B1"] = selected_item.name
-        sheet["A2"] = "Р“СЂСѓРїРїР°"
+        sheet["A2"] = "Группа"
         sheet["B2"] = selected_item.group or "-"
 
         sheet.column_dimensions["A"].width = 20
@@ -7453,7 +7369,7 @@ def report_characteristics(request):
     if selected_id.isdigit():
         selected_item = items_qs.filter(id=int(selected_id)).first()
         if not selected_item:
-            messages.warning(request, "Р’С‹Р±СЂР°РЅРЅР°СЏ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РЅРµ РЅР°Р№РґРµРЅР° СЃ С‚РµРєСѓС‰РёРјРё РїР°СЂР°РјРµС‚СЂР°РјРё С„РёР»СЊС‚СЂР°С†РёРё.")
+            messages.warning(request, "Выбранная характеристика не найдена с текущими параметрами фильтрации.")
 
     paged_items, page_obj, per_page = _paginate_report_queryset(request, items_qs)
 
@@ -7462,17 +7378,17 @@ def report_characteristics(request):
             from openpyxl import Workbook
             from openpyxl.styles import Font
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_characteristics"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё"
+        sheet.title = "Характеристики"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєР°Рј С‚РµС…РЅРёРєРё"
+        sheet["A1"] = "Отчет по характеристикам техники"
         sheet["A1"].font = Font(bold=True)
 
-        headers = ["РўРµС…РЅРёРєР°", "Р‘СЂРµРЅРґ", "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР°", "Р—РЅР°С‡РµРЅРёРµ"]
+        headers = ["Техника", "Р‘СЂРµРЅРґ", "Характеристика", "Р—РЅР°С‡РµРЅРёРµ"]
         for col, header in enumerate(headers, start=1):
             sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
 
@@ -7485,7 +7401,7 @@ def report_characteristics(request):
             row += 1
 
         if row == 4:
-            sheet.cell(row=row, column=1, value="РЎРїРёСЃРѕРє РїСѓСЃС‚")
+            sheet.cell(row=row, column=1, value="Список пуст")
 
         sheet.column_dimensions["A"].width = 36
         sheet.column_dimensions["B"].width = 24
@@ -7499,15 +7415,15 @@ def report_characteristics(request):
         filename = _build_filtered_list_filename(
             "directory_characteristics_values_report",
             [
-                ("РїРѕРёСЃРє", query),
-                ("С‚РµРіРё", ",".join(tag_tokens)),
-                ("СЂРµР¶РёРј_С‚РµРіРѕРІ", tags_mode),
+                ("поиск", query),
+                ("теги", ",".join(tag_tokens)),
+                ("режим_тегов", tags_mode),
                 ("Р±СЂРµРЅРґ", brand_filter),
-                ("РєР°С‚РµРіРѕСЂРёСЏ", category_filter),
-                ("С‚РµС…РЅРёРєР°", model_filter),
-                ("С‚РёРї", type_filter),
+                ("категория", category_filter),
+                ("техника", model_filter),
+                ("тип", type_filter),
                 ("СЃРѕСЂС‚", sort),
-                ("РЅР°РїСЂР°РІР»РµРЅРёРµ", direction),
+                ("направление", direction),
             ],
         )
         response = HttpResponse(
@@ -7519,30 +7435,30 @@ def report_characteristics(request):
 
     if export_format == "excel":
         if not selected_item:
-            messages.warning(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРЅРєСЂРµС‚РЅСѓСЋ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєСѓ.")
+            messages.warning(request, "Для экспорта выберите конкретную характеристику.")
             return redirect(reverse("report_characteristics"))
 
         try:
             from openpyxl import Workbook
         except ImportError:
-            messages.error(request, "Р”Р»СЏ СЌРєСЃРїРѕСЂС‚Р° РІ XLSX СѓСЃС‚Р°РЅРѕРІРёС‚Рµ РїР°РєРµС‚ openpyxl.")
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
             return redirect(reverse("report_characteristics"))
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР°"
+        sheet.title = "Характеристика"
 
-        sheet["A1"] = "РћС‚С‡РµС‚ РїРѕ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРµ С‚РµС…РЅРёРєРё"
+        sheet["A1"] = "Отчет по характеристике техники"
         sheet["B1"] = selected_item.product_model.name
         sheet["A2"] = "РљРѕРґ"
         sheet["B2"] = selected_item.characteristic_type.code
-        sheet["A3"] = "РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР°"
+        sheet["A3"] = "Характеристика"
         sheet["B3"] = selected_item.characteristic_type.name
         sheet["A4"] = "Р—РЅР°С‡РµРЅРёРµ"
         sheet["B4"] = selected_item.value
         sheet["A5"] = "Р‘СЂРµРЅРґ"
         sheet["B5"] = selected_item.product_model.brand.name if selected_item.product_model.brand_id else "-"
-        sheet["A6"] = "РђСЂС‚РёРєСѓР» С‚РµС…РЅРёРєРё"
+        sheet["A6"] = "Артикул техники"
         sheet["B6"] = selected_item.product_model.sku or "-"
 
         sheet.column_dimensions["A"].width = 28
@@ -8009,7 +7925,7 @@ def repair_document_edit(request, document_id=None):
                             request.session.modified = True
                     messages.success(
                         request,
-                        f"РЎС‚Р°С‚СѓСЃ РёР·РјРµРЅРµРЅ: СЃРѕР·РґР°РЅ РЅРѕРІС‹Р№ РґРѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р° #{saved.id}. РСЃС‚РѕСЂРёСЏ СЃРѕС…СЂР°РЅРµРЅР°.",
+                        f"Статус изменен: создан новый документ ремонта #{saved.id}. История сохранена.",
                     )
                 else:
                     saved = form.save()
@@ -8021,14 +7937,14 @@ def repair_document_edit(request, document_id=None):
                         request.session.modified = True
 
                     if editing_document:
-                        messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р° #{saved.id} СЃРѕС…СЂР°РЅРµРЅ.")
+                        messages.success(request, f"Документ ремонта #{saved.id} сохранен.")
                     else:
-                        messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р° #{saved.id} СЃРѕР·РґР°РЅ.")
+                        messages.success(request, f"Документ ремонта #{saved.id} создан.")
 
                 return redirect(reverse("repair_document_edit", kwargs={"document_id": saved.id}))
         else:
             if not editing_document:
-                messages.error(request, "РЎРЅР°С‡Р°Р»Р° СЃРѕС…СЂР°РЅРёС‚Рµ РґРѕРєСѓРјРµРЅС‚, С‡С‚РѕР±С‹ РґРѕР±Р°РІРёС‚СЊ СЃРІСЏР·Р°РЅРЅС‹Рµ Р·Р°РїРёСЃРё.")
+                messages.error(request, "Сначала сохраните документ, чтобы добавить связанные записи.")
                 return redirect(reverse("repair_document_new"))
 
             if action == "add_part":
@@ -8046,22 +7962,22 @@ def repair_document_edit(request, document_id=None):
                         link.manual_quantity += quantity_value
                         link.quantity = link.manual_quantity + link.work_quantity
                         link.save(update_fields=["manual_quantity", "quantity"])
-                    messages.success(request, f"Р—Р°РїС‡Р°СЃС‚СЊ В«{part.name}В» РґРѕР±Р°РІР»РµРЅР° РІ РґРѕРєСѓРјРµРЅС‚.")
+                    messages.success(request, f"Запчасть «{part.name}» добавлена в документ.")
 
             elif action == "remove_part":
                 link_id = request.POST.get("link_id")
                 if link_id:
                     link = get_object_or_404(RepairDocumentPart, id=link_id, repair_document=editing_document)
                     if link.work_quantity > 0 and link.manual_quantity <= 0:
-                        messages.error(request, "Р—Р°РїС‡Р°СЃС‚СЊ СЃС„РѕСЂРјРёСЂРѕРІР°РЅР° РёР· Р±Р»РѕРєР° В«Р Р°Р±РѕС‚С‹В». РР·РјРµРЅРёС‚Рµ РёР»Рё СѓРґР°Р»РёС‚Рµ СЃРІСЏР·Р°РЅРЅСѓСЋ СЂР°Р±РѕС‚Сѓ.")
+                        messages.error(request, "Запчасть сформирована из блока «Работы». Измените или удалите связанную работу.")
                     elif link.work_quantity > 0 and link.manual_quantity > 0:
                         link.manual_quantity = 0
                         link.quantity = link.work_quantity
                         link.save(update_fields=["manual_quantity", "quantity"])
-                        messages.success(request, "Р СѓС‡РЅР°СЏ С‡Р°СЃС‚СЊ РєРѕР»РёС‡РµСЃС‚РІР° Р·Р°РїС‡Р°СЃС‚Рё СѓРґР°Р»РµРЅР°. РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РёР· СЂР°Р±РѕС‚ СЃРѕС…СЂР°РЅРµРЅРѕ.")
+                        messages.success(request, "Ручная часть количества запчасти удалена. Автоматическое количество из работ сохранено.")
                     else:
                         link.delete()
-                        messages.success(request, "Р—Р°РїС‡Р°СЃС‚СЊ СѓРґР°Р»РµРЅР° РёР· РґРѕРєСѓРјРµРЅС‚Р°.")
+                        messages.success(request, "Запчасть удалена из документа.")
 
             elif action == "add_consumable":
                 consumable_id = request.POST.get("consumable")
@@ -8078,22 +7994,22 @@ def repair_document_edit(request, document_id=None):
                         link.manual_quantity += quantity_value
                         link.quantity = link.manual_quantity + link.work_quantity
                         link.save(update_fields=["manual_quantity", "quantity"])
-                    messages.success(request, f"Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» В«{consumable.name}В» РґРѕР±Р°РІР»РµРЅ РІ РґРѕРєСѓРјРµРЅС‚.")
+                    messages.success(request, f"Расходный материал «{consumable.name}» добавлен в документ.")
 
             elif action == "remove_consumable":
                 link_id = request.POST.get("link_id")
                 if link_id:
                     link = get_object_or_404(RepairDocumentConsumable, id=link_id, repair_document=editing_document)
                     if link.work_quantity > 0 and link.manual_quantity <= 0:
-                        messages.error(request, "Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» СЃС„РѕСЂРјРёСЂРѕРІР°РЅ РёР· Р±Р»РѕРєР° В«Р Р°Р±РѕС‚С‹В». РР·РјРµРЅРёС‚Рµ РёР»Рё СѓРґР°Р»РёС‚Рµ СЃРІСЏР·Р°РЅРЅСѓСЋ СЂР°Р±РѕС‚Сѓ.")
+                        messages.error(request, "Расходный материал сформирован из блока «Работы». Измените или удалите связанную работу.")
                     elif link.work_quantity > 0 and link.manual_quantity > 0:
                         link.manual_quantity = 0
                         link.quantity = link.work_quantity
                         link.save(update_fields=["manual_quantity", "quantity"])
-                        messages.success(request, "Р СѓС‡РЅР°СЏ С‡Р°СЃС‚СЊ РєРѕР»РёС‡РµСЃС‚РІР° СЂР°СЃС…РѕРґРЅРѕРіРѕ РјР°С‚РµСЂРёР°Р»Р° СѓРґР°Р»РµРЅР°. РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РёР· СЂР°Р±РѕС‚ СЃРѕС…СЂР°РЅРµРЅРѕ.")
+                        messages.success(request, "Ручная часть количества расходного материала удалена. Автоматическое количество из работ сохранено.")
                     else:
                         link.delete()
-                        messages.success(request, "Р Р°СЃС…РѕРґРЅС‹Р№ РјР°С‚РµСЂРёР°Р» СѓРґР°Р»РµРЅ РёР· РґРѕРєСѓРјРµРЅС‚Р°.")
+                        messages.success(request, "Расходный материал удален из документа.")
 
             elif action == "add_work":
                 work_id = request.POST.get("work")
@@ -8115,7 +8031,7 @@ def repair_document_edit(request, document_id=None):
                         affected_part_ids=affected_part_ids,
                         affected_consumable_ids=affected_consumable_ids,
                     )
-                    messages.success(request, f"Р Р°Р±РѕС‚Р° В«{work.name}В» РґРѕР±Р°РІР»РµРЅР° РІ РґРѕРєСѓРјРµРЅС‚.")
+                    messages.success(request, f"Работа «{work.name}» добавлена в документ.")
 
             elif action == "update_work":
                 link_id = request.POST.get("link_id")
@@ -8131,7 +8047,7 @@ def repair_document_edit(request, document_id=None):
                         affected_part_ids=affected_part_ids,
                         affected_consumable_ids=affected_consumable_ids,
                     )
-                    messages.success(request, "РљРѕР»РёС‡РµСЃС‚РІРѕ СЂР°Р±РѕС‚С‹ РѕР±РЅРѕРІР»РµРЅРѕ.")
+                    messages.success(request, "Количество работы обновлено.")
 
             elif action == "remove_work":
                 link_id = request.POST.get("link_id")
@@ -8145,7 +8061,7 @@ def repair_document_edit(request, document_id=None):
                         affected_part_ids=affected_part_ids,
                         affected_consumable_ids=affected_consumable_ids,
                     )
-                    messages.success(request, f"Р Р°Р±РѕС‚Р° В«{work_name}В» СѓРґР°Р»РµРЅР° РёР· РґРѕРєСѓРјРµРЅС‚Р°.")
+                    messages.success(request, f"Работа «{work_name}» удалена из документа.")
 
             redirect_params = {}
             if works_query:
@@ -8363,7 +8279,7 @@ def repair_document_delete(request, document_id):
     if request.method == "POST":
         item_id = item.id
         item.delete()
-        messages.success(request, f"Р”РѕРєСѓРјРµРЅС‚ СЂРµРјРѕРЅС‚Р° #{item_id} СѓРґР°Р»РµРЅ.")
+        messages.success(request, f"Документ ремонта #{item_id} удален.")
         return redirect(reverse("repair_document"))
 
     context = {
@@ -8438,7 +8354,7 @@ def client_equipment(request):
         if action == "delete" and target_id:
             target = get_object_or_404(ClientEquipment, id=target_id)
             target.delete()
-            messages.success(request, "РўРµС…РЅРёРєР° СѓРґР°Р»РµРЅР°.")
+            messages.success(request, "Техника удалена.")
             return redirect(redirect_url)
 
         if target_id:
@@ -8449,20 +8365,12 @@ def client_equipment(request):
             form = ClientEquipmentForm(request.POST)
             is_new = True
 
-        # РџРµСЂРµРґР°С‘Рј organization_id РІ С„РѕСЂРјСѓ РґР»СЏ РІР°Р»РёРґР°С†РёРё
-        org_id = request.POST.get("organization")
-        if org_id and org_id.isdigit():
-            form._organization_id = int(org_id)
-
         if form.is_valid():
-            equipment = form.save(commit=False)
-            if org_id and org_id.isdigit():
-                equipment.organization_id = int(org_id)
-            equipment.save()
+            equipment = form.save()
             if is_new:
-                messages.success(request, f"РўРµС…РЅРёРєР° РґРѕР±Р°РІР»РµРЅР° РґР»СЏ {equipment.organization.name}.")
+                messages.success(request, f"Техника добавлена для {equipment.organization.name}.")
             else:
-                messages.success(request, f"РўРµС…РЅРёРєР° РѕР±РЅРѕРІР»РµРЅР°.")
+                messages.success(request, f"Техника обновлена.")
             params["edit"] = equipment.id
             return redirect(f"{reverse('client_equipment')}?{urlencode(params)}")
     else:

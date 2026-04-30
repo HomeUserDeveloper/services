@@ -99,11 +99,11 @@
                                 -
                             {% endif %}
                         </td>
-                        <td>{{ item.device_type|default:"-" }}</td>
+                        <td>{{ item.char_device_type|default:"-" }}</td>
                         <td>{{ item.brand.name|default:"-" }}</td>
-                        <td>{{ item.color|default:"-" }}</td>
-                        <td>{{ item.format_print|default:"-" }}</td>
-                        <td>{% if item.speed_print %}{{ item.speed_print }} стр/мин{% else %}-{% endif %}</td>
+                        <td>{{ item.char_color|default:"-" }}</td>
+                        <td>{{ item.char_format_print|default:"-" }}</td>
+                        <td>{% if item.char_speed_print %}{{ item.char_speed_print }} стр/мин{% else %}-{% endif %}</td>
                         <td>{{ item.category|default:"-" }}</td>
                         <td>
                             <span class="badge text-bg-secondary">{{ item.attachment_count|default:0 }}</span>

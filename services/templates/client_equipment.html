@@ -32,36 +32,38 @@
                         <select name="organization" id="id_organization" class="form-select" required>
                             <option value="">— выберите организацию —</option>
                             {% for org in organizations_list %}
-                                <option value="{{ org.id }}" {% if editing_equipment.organization_id == org.id or form.initial.organization == org.id %}selected{% endif %}>{{ org.name }}</option>
+                                <option value="{{ org.id }}" {% if form.organization.value|stringformat:"s" == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
                     <!-- Form fields -->
                     {% for field in form %}
-                        {% if field.name == "product_model" %}
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm mb-1"
-                                    id="product_model_search"
-                                    placeholder="Поиск по наименованию техники"
-                                    autocomplete="off"
-                                >
-                                {{ field }}
-                                {% if field.errors %}
-                                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
-                                {{ field }}
-                                {% if field.errors %}
-                                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
-                                {% endif %}
-                            </div>
+                        {% if field.name != "organization" %}
+                            {% if field.name == "product_model" %}
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                                    <input
+                                        type="text"
+                                        class="form-control form-control-sm mb-1"
+                                        id="product_model_search"
+                                        placeholder="Поиск по наименованию техники"
+                                        autocomplete="off"
+                                    >
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
 

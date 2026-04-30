@@ -312,13 +312,7 @@ class ProductModel(CatalogReferenceMixin, models.Model):
         related_name="product_models",
         verbose_name="Бренд",
     )
-    device_type = models.CharField("Тип устройства", max_length=32, blank=True)
-    color = models.CharField("Цветность", max_length=32, blank=True)
-    format_print = models.CharField("Формат", max_length=8, blank=True)
-    speed_print = models.PositiveIntegerField("Скорость печати (стр/мин)", null=True, blank=True)
     sku = models.CharField("Артикул", max_length=128, blank=True)
-    weight = models.CharField("Вес", max_length=64, blank=True)
-    dimensions = models.CharField("Габариты", max_length=128, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

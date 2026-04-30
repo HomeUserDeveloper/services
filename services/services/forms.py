@@ -499,8 +499,9 @@ class RepairDocumentForm(forms.ModelForm):
 class ClientEquipmentForm(forms.ModelForm):
     class Meta:
         model = ClientEquipment
-        fields = ("product_model", "serial_number", "inventory_number", "print_counter")
+        fields = ("organization", "product_model", "serial_number", "inventory_number", "print_counter")
         widgets = {
+            "organization": forms.Select(attrs={"class": "form-select"}),
             "product_model": forms.Select(attrs={"class": "form-select"}),
             "serial_number": forms.TextInput(attrs={"class": "form-control"}),
             "inventory_number": forms.TextInput(attrs={"class": "form-control"}),
@@ -509,37 +510,10 @@ class ClientEquipmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["organization"].queryset = Organization.objects.all().order_by("name")
+        self.fields["organization"].empty_label = "— выберите организацию —"
         self.fields["product_model"].queryset = ProductModel.objects.select_related("brand").all().order_by("name")
         self.fields["product_model"].empty_label = "— не выбрана —"
-
-    def clean(self):
-        from django.core.exceptions import ValidationError
-
-        cleaned_data = super().clean()
-        
-        # Создаём временный инстанс модели для валидации
-        if self.instance.pk:
-            # Редактирование существующей записи
-            instance = self.instance
-        else:
-            # Создание новой записи
-            instance = ClientEquipment()
-        
-        # Копируем очищенные данные в инстанс
-        instance.organization_id = getattr(self, '_organization_id', None)
-        instance.serial_number = cleaned_data.get('serial_number', '')
-        instance.inventory_number = cleaned_data.get('inventory_number', '')
-        instance.product_model = cleaned_data.get('product_model')
-        
-        # Вызываем валидацию модели
-        try:
-            instance.clean()
-        except ValidationError as e:
-            # Добавляем ошибки валидации модели в ошибки формы
-            for field, message in e.message_dict.items():
-                self.add_error(field, message)
-        
-        return cleaned_data
 
 
 class RepairDocumentPartForm(forms.ModelForm):
