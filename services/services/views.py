@@ -1,8 +1,10 @@
 ﻿import json
 import mimetypes
+import os
 import random
 import re
 import shutil
+import subprocess
 import zipfile
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
@@ -134,6 +136,43 @@ def _save_catalog_attachment(owner_field, owner, attachment_model, attachment_fo
             "file": payload["file"],
         }
     )
+
+
+def _normalize_catalog_reference(raw_value: str) -> str:
+    value = (raw_value or "").strip()
+    if not value:
+        return ""
+    if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", value):
+        return value
+    if re.match(r"^[a-zA-Z]:[\\/]", value):
+        return f"file:///{value.replace('\\', '/')}"
+    if value.startswith("\\\\"):
+        return f"file://{value.replace('\\', '/')}"
+    return value
+
+
+def _local_path_from_catalog_url(url: str) -> str:
+    value = (url or "").strip()
+    if not value:
+        return ""
+    if value.lower().startswith("file:///"):
+        return value[8:].replace("/", os.sep)
+    if value.lower().startswith("file://"):
+        return "\\\\" + value[7:].replace("/", os.sep)
+    return value
+
+
+def _open_catalog_in_explorer(catalog_url: str) -> str | None:
+    local_path = _local_path_from_catalog_url(catalog_url)
+    if not local_path:
+        return "Путь к каталогу не задан."
+    try:
+        if not os.path.exists(local_path):
+            return f"Каталог не найден: {local_path}"
+        subprocess.Popen(["explorer", os.path.normpath(local_path)])
+        return None
+    except Exception as exc:
+        return f"Не удалось открыть каталог: {exc}"
 
 
 @login_required(login_url="login")
@@ -5154,6 +5193,25 @@ def acceptance_document_edit(request, document_id=None):
                 attachment.delete()
                 messages.success(request, "Вложение удалено.")
             return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "save_catalog" and editing_document:
+            catalog_path = request.POST.get("catalog_path", "")
+            editing_document.catalog_url = _normalize_catalog_reference(catalog_path)
+            editing_document.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог сохранен.")
+            return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "remove_catalog" and editing_document:
+            editing_document.catalog_url = ""
+            editing_document.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог удален.")
+            return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "open_catalog" and editing_document:
+            err = _open_catalog_in_explorer(editing_document.catalog_url)
+            if err:
+                messages.error(request, err)
+            return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
     else:
         initial = {"date": timezone.localdate()} if not editing_document else {}
         selected_org = request.GET.get("organization", "").strip()
@@ -5384,6 +5442,25 @@ def shipment_document_edit(request, document_id=None):
                 )
                 attachment.delete()
                 messages.success(request, "Вложение удалено.")
+            return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "save_catalog" and editing_document:
+            catalog_path = request.POST.get("catalog_path", "")
+            editing_document.catalog_url = _normalize_catalog_reference(catalog_path)
+            editing_document.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог сохранен.")
+            return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "remove_catalog" and editing_document:
+            editing_document.catalog_url = ""
+            editing_document.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог удален.")
+            return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "open_catalog" and editing_document:
+            err = _open_catalog_in_explorer(editing_document.catalog_url)
+            if err:
+                messages.error(request, err)
             return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
     else:
         initial = {"date": timezone.localdate()} if not editing_document else {}
@@ -8141,6 +8218,22 @@ def repair_document_edit(request, document_id=None):
                     )
                     attachment.delete()
                     messages.success(request, "Вложение удалено.")
+
+            elif action == "save_catalog":
+                catalog_path = request.POST.get("catalog_path", "")
+                editing_document.catalog_url = _normalize_catalog_reference(catalog_path)
+                editing_document.save(update_fields=["catalog_url"])
+                messages.success(request, "Каталог сохранен.")
+
+            elif action == "remove_catalog":
+                editing_document.catalog_url = ""
+                editing_document.save(update_fields=["catalog_url"])
+                messages.success(request, "Каталог удален.")
+
+            elif action == "open_catalog":
+                err = _open_catalog_in_explorer(editing_document.catalog_url)
+                if err:
+                    messages.error(request, err)
 
             redirect_params = {}
             if works_query:
