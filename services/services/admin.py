@@ -559,7 +559,7 @@ class ProductModelCharacteristicAdmin(TimestampReadonlyAdminMixin, admin.ModelAd
 @admin.register(ProductModelAttachment)
 class ProductModelAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ("display_name", "product_model", "uploaded_at")
-    search_fields = ("title", "product_model__name", "file")
+    search_fields = ("title", "original_name", "product_model__name", "file")
     autocomplete_fields = ("product_model",)
     list_select_related = ("product_model",)
 
@@ -613,7 +613,7 @@ class ConsumableCompatibilityAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin
 @admin.register(ConsumableAttachment)
 class ConsumableAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ("display_name", "consumable", "uploaded_at")
-    search_fields = ("title", "consumable__name", "file")
+    search_fields = ("title", "original_name", "consumable__name", "file")
     autocomplete_fields = ("consumable",)
     list_select_related = ("consumable",)
 
@@ -667,7 +667,7 @@ class PartCompatibilityAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
 @admin.register(PartAttachment)
 class PartAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ("display_name", "part", "uploaded_at")
-    search_fields = ("title", "part__name", "file")
+    search_fields = ("title", "original_name", "part__name", "file")
     autocomplete_fields = ("part",)
     list_select_related = ("part",)
 
@@ -813,7 +813,7 @@ class RepairDocumentConsumableAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmi
 @admin.register(RepairDocumentAttachment)
 class RepairDocumentAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ("display_name", "repair_document", "uploaded_at")
-    search_fields = ("title", "file", "repair_document__id")
+    search_fields = ("title", "original_name", "file", "repair_document__id")
     autocomplete_fields = ("repair_document",)
     list_select_related = ("repair_document",)
 
@@ -839,7 +839,7 @@ class AcceptanceDocumentEquipmentAdmin(TimestampReadonlyAdminMixin, admin.ModelA
 @admin.register(AcceptanceDocumentAttachment)
 class AcceptanceDocumentAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ("display_name", "acceptance_document", "uploaded_at")
-    search_fields = ("title", "file", "acceptance_document__id")
+    search_fields = ("title", "original_name", "file", "acceptance_document__id")
     autocomplete_fields = ("acceptance_document",)
     list_select_related = ("acceptance_document",)
 
@@ -865,7 +865,7 @@ class ShipmentDocumentEquipmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdm
 @admin.register(ShipmentDocumentAttachment)
 class ShipmentDocumentAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ("display_name", "shipment_document", "uploaded_at")
-    search_fields = ("title", "file", "shipment_document__id")
+    search_fields = ("title", "original_name", "file", "shipment_document__id")
     autocomplete_fields = ("shipment_document",)
     list_select_related = ("shipment_document",)
 

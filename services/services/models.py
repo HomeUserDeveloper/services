@@ -47,6 +47,7 @@ class CatalogReferenceMixin(models.Model):
 
 class CatalogAttachmentBase(models.Model):
     title = models.CharField("Название файла", max_length=255, blank=True)
+    original_name = models.CharField("Исходное имя файла", max_length=255, blank=True, db_index=True)
     file = models.FileField(
         "Файл",
         upload_to=catalog_attachment_upload_to,
@@ -60,7 +61,11 @@ class CatalogAttachmentBase(models.Model):
 
     @property
     def display_name(self):
-        return self.title or Path(self.file.name).name
+        if self.title:
+            return self.title
+        if self.original_name:
+            return f"{self.original_name}{self.extension}"
+        return Path(self.file.name).name
 
     @property
     def is_image(self):
@@ -75,6 +80,11 @@ class CatalogAttachmentBase(models.Model):
         if self.is_image:
             return "Фото"
         return ATTACHMENT_TYPE_LABELS.get(self.extension, self.extension.lstrip(".").upper() or "Файл")
+
+    def save(self, *args, **kwargs):
+        if self.file and not self.original_name:
+            self.original_name = Path(self.file.name).stem[:255]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.display_name

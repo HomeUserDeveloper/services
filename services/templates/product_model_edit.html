@@ -95,6 +95,7 @@
                     <tr>
                         <th>Превью</th>
                         <th>Файл</th>
+                        <th>Исходное имя</th>
                         <th>Тип</th>
                         <th>Дата загрузки</th>
                         <th>Действия</th>
@@ -115,6 +116,9 @@
                             <td>
                                 <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">{{ attachment.display_name }}</a>
                             </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" value="{{ attachment.original_name }}" readonly>
+                            </td>
                             <td>{{ attachment.file_type_label }}</td>
                             <td>{{ attachment.uploaded_at|date:"d.m.Y H:i" }}</td>
                             <td>
@@ -128,7 +132,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center py-3">Вложения пока не добавлены.</td>
+                            <td colspan="6" class="text-center py-3">Вложения пока не добавлены.</td>
                         </tr>
                     {% endfor %}
                     </tbody>

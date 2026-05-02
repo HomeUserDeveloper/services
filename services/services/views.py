@@ -2241,7 +2241,8 @@ def product_model(request):
             | Q(sku_lc__contains=normalized_query)
             | Q(brand_name_lc__contains=normalized_query)
             | Q(category_name_lc__contains=normalized_query)
-        )
+            | Q(attachments__original_name__icontains=normalized_query)
+        ).distinct()
     if brand_filter:
         try:
             models_qs = models_qs.filter(brand_id=int(brand_filter))
@@ -3147,7 +3148,8 @@ def consumable(request):
             | Q(sku_lc__contains=normalized_query)
             | Q(brand_name_lc__contains=normalized_query)
             | Q(category_name_lc__contains=normalized_query)
-        )
+            | Q(attachments__original_name__icontains=normalized_query)
+        ).distinct()
     if brand_filter:
         try:
             consumables_qs = consumables_qs.filter(brand_id=int(brand_filter))
@@ -3399,7 +3401,8 @@ def part(request):
             | Q(sku_lc__contains=normalized_query)
             | Q(brand_name_lc__contains=normalized_query)
             | Q(category_name_lc__contains=normalized_query)
-        )
+            | Q(attachments__original_name__icontains=normalized_query)
+        ).distinct()
     if brand_filter:
         try:
             parts_qs = parts_qs.filter(brand_id=int(brand_filter))
