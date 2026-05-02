@@ -127,7 +127,10 @@
                     <h2 class="h5 m-0">Документ ремонта #{{ selected_document.id }}</h2>
                     <div class="text-muted">Дата: {{ selected_document.date|date:"d.m.Y" }}</div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();">Печать</button>
+                <div class="d-flex gap-2 no-print">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();">Печать</button>
+                    <a class="btn btn-outline-success btn-sm" href="{% url 'report_repair_document' %}?organization={{ selected_document.organization.id }}&date={{ selected_document.date|date:'Y-m-d' }}&document={{ selected_document.id }}&export=excel">Экспорт в Excel</a>
+                </div>
             </div>
 
             <div class="row g-3 mb-3">
