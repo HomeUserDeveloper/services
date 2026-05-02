@@ -5833,9 +5833,13 @@ def report_repair_document(request):
             serial = eq.serial_number or "-"
             inventory = eq.inventory_number or "-"
             sheet["A6"] = "Техника клиента"
-            sheet["B6"] = f"{model_name} | С/н: {serial} | Инв: {inventory}"
+            sheet["B6"] = model_name
+            sheet["A7"] = "Серийный номер"
+            sheet["B7"] = serial
+            sheet["A8"] = "Инвентарный номер"
+            sheet["B8"] = inventory
 
-        row = 8
+        row = 10
         sheet.cell(row=row, column=1, value="Работы").font = Font(bold=True)
         row += 1
         for col, header in enumerate(["Код", "Наименование", "Цена", "Количество"], start=1):
