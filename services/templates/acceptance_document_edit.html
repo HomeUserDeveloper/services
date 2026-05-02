@@ -10,7 +10,7 @@
 
 <div class="card shadow-sm mb-4">
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
+        <form id="document-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="action" value="save">
             <div class="row g-3">
@@ -43,11 +43,7 @@
                     {{ form.organization }}
                     {% if form.organization.errors %}<div class="text-danger small mt-1">{{ form.organization.errors|striptags }}</div>{% endif %}
                 </div>
-                <div class="col-12">
-                    <label class="form-label" for="{{ form.catalog_url.id_for_label }}">{{ form.catalog_url.label }}</label>
-                    {{ form.catalog_url }}
-                    {% if form.catalog_url.errors %}<div class="text-danger small mt-1">{{ form.catalog_url.errors|striptags }}</div>{% endif %}
-                </div>
+                <div class="d-none">{{ form.catalog_url }}</div>
             </div>
             <div class="d-flex gap-2 mt-3">
                 <button type="submit" class="btn btn-primary">Сохранить</button>
@@ -65,12 +61,24 @@
         <h2 class="h5 m-0">Файлы и каталог</h2>
     </div>
     <div class="card-body border-bottom">
-        {% if editing_document.catalog_url %}
-            <div class="mb-3">
-                <div class="text-muted small">Ссылка на каталог:</div>
-                <a href="{{ editing_document.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ editing_document.catalog_url }}</a>
+        <div class="row g-2 align-items-end mb-3">
+            <div class="col-12 col-md-10">
+                <label class="form-label" for="catalog-url-proxy">Локальный каталог</label>
+                <input
+                    type="text"
+                    id="catalog-url-proxy"
+                    class="form-control"
+                    value="{{ form.catalog_url.value|default:'' }}"
+                    placeholder="C:\\Каталог\\Проект или file:///C:/Каталог/Проект"
+                    autocomplete="off"
+                >
+                {% if form.catalog_url.errors %}<div class="text-danger small mt-1">{{ form.catalog_url.errors|striptags }}</div>{% endif %}
+                <div class="form-text">Путь к локальному каталогу сохраняется вместе с документом. Открытие работает после сохранения документа.</div>
             </div>
-        {% endif %}
+            <div class="col-12 col-md-2 d-grid">
+                <a id="open-catalog-link" class="btn btn-outline-secondary{% if not form.catalog_url.value %} disabled{% endif %}" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="{% if not form.catalog_url.value %}true{% else %}false{% endif %}">Открыть каталог</a>
+            </div>
+        </div>
         <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
             {% csrf_token %}
             <input type="hidden" name="action" value="add_attachment">
@@ -205,6 +213,65 @@
 
 <script>
     (function () {
+        function normalizeCatalogHref(path) {
+            const value = (path || "").trim();
+            if (!value) {
+                return "";
+            }
+            if (/^file:\/\//i.test(value)) {
+                return value;
+            }
+            if (/^[a-zA-Z]:[\\/]/.test(value)) {
+                return `file:///${value.replace(/\\/g, "/")}`;
+            }
+            if (/^\\\\/.test(value)) {
+                return `file:${value.replace(/\\/g, "/")}`;
+            }
+            return value;
+        }
+
+        function setupCatalogPathBridge() {
+            const hiddenCatalogInput = document.getElementById("id_catalog_url");
+            const catalogProxyInput = document.getElementById("catalog-url-proxy");
+            const openCatalogLink = document.getElementById("open-catalog-link");
+            const documentForm = document.getElementById("document-form");
+
+            if (!hiddenCatalogInput || !catalogProxyInput || !openCatalogLink) {
+                return;
+            }
+
+            function syncCatalogState() {
+                const value = catalogProxyInput.value.trim();
+                hiddenCatalogInput.value = value;
+
+                const href = normalizeCatalogHref(value);
+                if (!href) {
+                    openCatalogLink.classList.add("disabled");
+                    openCatalogLink.setAttribute("aria-disabled", "true");
+                    openCatalogLink.setAttribute("href", "#");
+                    return;
+                }
+
+                openCatalogLink.classList.remove("disabled");
+                openCatalogLink.setAttribute("aria-disabled", "false");
+                openCatalogLink.setAttribute("href", href);
+            }
+
+            catalogProxyInput.addEventListener("input", syncCatalogState);
+            if (documentForm) {
+                documentForm.addEventListener("submit", syncCatalogState);
+            }
+            openCatalogLink.addEventListener("click", function (event) {
+                if (openCatalogLink.classList.contains("disabled")) {
+                    event.preventDefault();
+                }
+            });
+
+            syncCatalogState();
+        }
+
+        setupCatalogPathBridge();
+
         function setupAttachmentListTools() {
             const searchInput = document.getElementById("attachment-search");
             const typeFilter = document.getElementById("attachment-type-filter");
