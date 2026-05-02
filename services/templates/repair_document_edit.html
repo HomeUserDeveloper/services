@@ -18,6 +18,7 @@
         <form id="document-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="action" value="save">
+            <input type="hidden" name="catalog_url" value="{{ form.catalog_url.value|default:'' }}">
 
             <div class="row g-3 mb-2">
                 <div class="col-12 col-lg-2">
@@ -151,7 +152,7 @@
                     {{ form.note }}
                     {% if form.note.errors %}<div class="text-danger small mt-1">{{ form.note.errors|striptags }}</div>{% endif %}
                 </div>
-                <div class="d-none">{{ form.catalog_url }}</div>
+
             </div>
 
             <div class="d-flex gap-2 mt-3">
@@ -170,24 +171,28 @@
             <h2 class="h5 m-0">Файлы и каталог</h2>
         </div>
         <div class="card-body border-bottom">
-            <div class="row g-2 align-items-end mb-3">
-                <div class="col-12 col-md-10">
-                    <label class="form-label" for="catalog-url-proxy">Локальный каталог</label>
-                    <input
-                        type="text"
-                        id="catalog-url-proxy"
-                        class="form-control"
-                        value="{{ form.catalog_url.value|default:'' }}"
-                        placeholder="C:\\Каталог\\Проект или file:///C:/Каталог/Проект"
-                        autocomplete="off"
-                    >
+            <form method="post" class="row g-2 align-items-end mb-3" id="catalog-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_catalog">
+                <input type="hidden" id="catalog_path" name="catalog_path" value="{{ editing_document.catalog_url|default:'' }}">
+                <input type="hidden" name="works_q" value="{{ works_query }}">
+                <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                <div class="col-12 col-md-8">
+                    <label class="form-label">Локальный каталог</label>
+                    <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_document.catalog_url|default:'Каталог не выбран' }}</div>
                     {% if form.catalog_url.errors %}<div class="text-danger small mt-1">{{ form.catalog_url.errors|striptags }}</div>{% endif %}
-                    <div class="form-text">Путь к локальному каталогу сохраняется вместе с документом. Открытие работает после сохранения документа.</div>
                 </div>
                 <div class="col-12 col-md-2 d-grid">
-                    <a id="open-catalog-link" class="btn btn-outline-secondary{% if not form.catalog_url.value %} disabled{% endif %}" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="{% if not form.catalog_url.value %}true{% else %}false{% endif %}">Открыть каталог</a>
+                    <button type="button" id="catalog-browse-btn" class="btn btn-outline-secondary">Обзор каталога</button>
                 </div>
-            </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+                </div>
+            </form>
             <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_attachment">
@@ -233,6 +238,29 @@
                 <table class="table table-striped mb-0 align-middle">
                     <thead><tr><th>Превью</th><th>Файл</th><th>Исходное имя</th><th>Тип</th><th>Дата загрузки</th><th>Действия</th></tr></thead>
                     <tbody>
+                    {% if editing_document.catalog_url %}
+                        <tr data-attachment-row="1" data-name="Каталог" data-type="Каталог" data-uploaded-ts="0" data-search-text="каталог {{ editing_document.catalog_url }}">
+                            <td>-</td>
+                            <td><a href="{{ editing_document.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ editing_document.catalog_url }}</a></td>
+                            <td><input type="text" class="form-control form-control-sm" value="{{ editing_document.catalog_url }}" readonly></td>
+                            <td>Каталог</td>
+                            <td>-</td>
+                            <td class="d-flex gap-2">
+                                <a href="{{ editing_document.catalog_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">Просмотр</a>
+                                <form method="post" onsubmit="return confirm('Удалить каталог?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_catalog">
+                                    <input type="hidden" name="works_q" value="{{ works_query }}">
+                                    <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                                    <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                                    <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                                    <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                                    <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endif %}
                     {% for attachment in attachments %}
                         <tr data-attachment-row="1" data-name="{{ attachment.display_name }}" data-type="{{ attachment.file_type_label }}" data-uploaded-ts="{{ attachment.uploaded_at|date:'U' }}" data-search-text="{{ attachment.display_name }} {{ attachment.original_name }} {{ attachment.file_type_label }}">
                             <td>
@@ -263,9 +291,10 @@
                                 </form>
                             </td>
                         </tr>
-                    {% empty %}
-                        <tr data-attachment-empty="1"><td colspan="6" class="text-center py-3">Вложения пока не добавлены.</td></tr>
                     {% endfor %}
+                    {% if not attachments and not editing_document.catalog_url %}
+                        <tr data-attachment-empty="1"><td colspan="6" class="text-center py-3">Вложения пока не добавлены.</td></tr>
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -583,64 +612,28 @@
 
 <script>
     (function () {
-        function normalizeCatalogHref(path) {
-            const value = (path || "").trim();
-            if (!value) {
-                return "";
-            }
-            if (/^file:\/\//i.test(value)) {
-                return value;
-            }
-            if (/^[a-zA-Z]:[\\/]/.test(value)) {
-                return `file:///${value.replace(/\\/g, "/")}`;
-            }
-            if (/^\\\\/.test(value)) {
-                return `file:${value.replace(/\\/g, "/")}`;
-            }
-            return value;
-        }
+        function setupCatalogBrowse() {
+            const browseButton = document.getElementById("catalog-browse-btn");
+            const pathInput = document.getElementById("catalog_path");
+            const preview = document.getElementById("catalog-path-preview");
 
-        function setupCatalogPathBridge() {
-            const hiddenCatalogInput = document.getElementById("id_catalog_url");
-            const catalogProxyInput = document.getElementById("catalog-url-proxy");
-            const openCatalogLink = document.getElementById("open-catalog-link");
-            const documentForm = document.getElementById("document-form");
-
-            if (!hiddenCatalogInput || !catalogProxyInput || !openCatalogLink) {
+            if (!browseButton || !pathInput || !preview) {
                 return;
             }
 
-            function syncCatalogState() {
-                const value = catalogProxyInput.value.trim();
-                hiddenCatalogInput.value = value;
-
-                const href = normalizeCatalogHref(value);
-                if (!href) {
-                    openCatalogLink.classList.add("disabled");
-                    openCatalogLink.setAttribute("aria-disabled", "true");
-                    openCatalogLink.setAttribute("href", "#");
+            browseButton.addEventListener("click", function () {
+                const currentPath = pathInput.value || "";
+                const selectedPath = window.prompt("Укажите путь к локальному каталогу", currentPath);
+                if (selectedPath === null) {
                     return;
                 }
-
-                openCatalogLink.classList.remove("disabled");
-                openCatalogLink.setAttribute("aria-disabled", "false");
-                openCatalogLink.setAttribute("href", href);
-            }
-
-            catalogProxyInput.addEventListener("input", syncCatalogState);
-            if (documentForm) {
-                documentForm.addEventListener("submit", syncCatalogState);
-            }
-            openCatalogLink.addEventListener("click", function (event) {
-                if (openCatalogLink.classList.contains("disabled")) {
-                    event.preventDefault();
-                }
+                const normalized = selectedPath.trim();
+                pathInput.value = normalized;
+                preview.textContent = normalized || "Каталог не выбран";
             });
-
-            syncCatalogState();
         }
 
-        setupCatalogPathBridge();
+        setupCatalogBrowse();
 
         function setupAttachmentListTools() {
             const searchInput = document.getElementById("attachment-search");
