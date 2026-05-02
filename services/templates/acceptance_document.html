@@ -51,6 +51,7 @@
                             <div class="d-flex gap-2">
                                 <a class="btn btn-sm btn-outline-primary" href="{% url 'acceptance_document_edit' item.id %}">Открыть</a>
                                 <a class="btn btn-sm btn-outline-success" href="{% url 'report_acceptance_document' %}?organization={{ item.organization.id }}&date={{ item.date|date:'Y-m-d' }}&document={{ item.id }}">Отчет</a>
+                                <a class="btn btn-sm btn-outline-info" href="{% url 'report_acceptance_document' %}?organization={{ item.organization.id }}&date={{ item.date|date:'Y-m-d' }}&document={{ item.id }}&export=excel">Выгрузка</a>
                             </div>
                         </td>
                     </tr>
