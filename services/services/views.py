@@ -5814,11 +5814,11 @@ def report_repair_document(request):
 
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = "Р РµРјРѕРЅС‚"
+        sheet.title = "Ремонт"
 
         sheet["A1"] = "Документ ремонта"
         sheet["B1"] = f"#{selected_document.id}"
-        sheet["A2"] = "Р”Р°С‚Р°"
+        sheet["A2"] = "Дата"
         sheet["B2"] = selected_document.date.strftime("%d.%m.%Y")
         sheet["A3"] = "Организация"
         sheet["B3"] = selected_document.organization.name
@@ -5828,9 +5828,9 @@ def report_repair_document(request):
         sheet["B5"] = selected_document.status.name if selected_document.status_id else "-"
 
         row = 7
-        sheet.cell(row=row, column=1, value="Р Р°Р±РѕС‚С‹").font = Font(bold=True)
+        sheet.cell(row=row, column=1, value="Работы").font = Font(bold=True)
         row += 1
-        for col, header in enumerate(["РљРѕРґ", "Наименование", "Р¦РµРЅР°", "Количество"], start=1):
+        for col, header in enumerate(["Код", "Наименование", "Цена", "Количество"], start=1):
             sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
         row += 1
         for link in linked_works:
