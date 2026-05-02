@@ -48,7 +48,10 @@
                         <td>{{ item.organization.name }}</td>
                         <td>{{ item.equipment_links.count }}</td>
                         <td>
-                            <a class="btn btn-sm btn-outline-primary" href="{% url 'acceptance_document_edit' item.id %}">Открыть</a>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'acceptance_document_edit' item.id %}">Открыть</a>
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'report_acceptance_document' %}?organization={{ item.organization.id }}&date={{ item.date|date:'Y-m-d' }}&document={{ item.id }}">Отчет</a>
+                            </div>
                         </td>
                     </tr>
                 {% empty %}

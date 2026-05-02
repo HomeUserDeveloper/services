@@ -82,6 +82,7 @@
                             <div class="d-flex gap-2">
                                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'repair_document_view' item.id %}">Просмотр</a>
                                 <a class="btn btn-sm btn-outline-primary" href="{% url 'repair_document_edit' item.id %}?q={{ query|urlencode }}&organization={{ organization_filter|urlencode }}&status={{ status_filter|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Редактировать</a>
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'report_repair_document' %}?organization={{ item.organization.id }}&date={{ item.date|date:'Y-m-d' }}&document={{ item.id }}">Отчет</a>
                                 <a class="btn btn-sm btn-outline-danger" href="{% url 'repair_document_delete' item.id %}?q={{ query|urlencode }}&organization={{ organization_filter|urlencode }}&status={{ status_filter|urlencode }}&per_page={{ per_page }}&sort={{ sort }}&dir={{ direction }}">Удалить</a>
                             </div>
                         </td>

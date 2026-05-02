@@ -52,7 +52,10 @@
                 <td>{{ document.serviceman.full_name|default:"-" }}</td>
                 <td>{{ document.equipment_links.count }}</td>
                 <td class="text-end">
-                    <a href="{% url 'shipment_document_edit' document.id %}" class="btn btn-sm btn-outline-primary">Открыть</a>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'shipment_document_edit' document.id %}" class="btn btn-sm btn-outline-primary">Открыть</a>
+                        <a href="{% url 'report_shipment_document' %}?organization={{ document.organization.id }}&date={{ document.date|date:'Y-m-d' }}&document={{ document.id }}" class="btn btn-sm btn-outline-success">Отчет</a>
+                    </div>
                 </td>
             </tr>
             {% empty %}
