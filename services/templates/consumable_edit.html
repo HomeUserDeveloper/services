@@ -60,12 +60,24 @@
             <h2 class="h5 m-0">Файлы и каталог</h2>
         </div>
         <div class="card-body border-bottom">
-            {% if editing_consumable.catalog_url %}
-                <div class="mb-3">
-                    <div class="text-muted small">Ссылка на каталог</div>
-                    <a href="{{ editing_consumable.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ editing_consumable.catalog_url }}</a>
+            <form method="post" class="row g-2 align-items-end mb-3" id="catalog-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_catalog">
+                <input type="hidden" name="consumable_id" value="{{ editing_consumable.id }}">
+                <input type="hidden" id="catalog_path" name="catalog_path" value="{{ editing_consumable.catalog_url|default:'' }}">
+
+                <div class="col-12 col-md-8">
+                    <label class="form-label">Локальный каталог</label>
+                    <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_consumable.catalog_url|default:'Каталог не выбран' }}</div>
+                    {% if form.catalog_url.errors %}<div class="text-danger small mt-1">{{ form.catalog_url.errors|striptags }}</div>{% endif %}
                 </div>
-            {% endif %}
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="button" id="catalog-browse-btn" class="btn btn-outline-secondary">Обзор каталога</button>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+                </div>
+            </form>
 
             <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
                 {% csrf_token %}
@@ -117,6 +129,31 @@
                     </tr>
                     </thead>
                     <tbody>
+                    {% if editing_consumable.catalog_url %}
+                        <tr data-attachment-row="1" data-name="Каталог" data-type="Каталог" data-uploaded-ts="0" data-search-text="каталог {{ editing_consumable.catalog_url }}">
+                            <td>-</td>
+                            <td><a href="{{ editing_consumable.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ editing_consumable.catalog_url }}</a></td>
+                            <td><input type="text" class="form-control form-control-sm" value="{{ editing_consumable.catalog_url }}" readonly></td>
+                            <td>Каталог</td>
+                            <td>-</td>
+                            <td class="d-flex gap-2">
+                                {% if is_local_request %}
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="open_catalog">
+                                    <input type="hidden" name="consumable_id" value="{{ editing_consumable.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Просмотр</button>
+                                </form>
+                                {% endif %}
+                                <form method="post" onsubmit="return confirm('Удалить каталог?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_catalog">
+                                    <input type="hidden" name="consumable_id" value="{{ editing_consumable.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endif %}
                     {% for attachment in attachments %}
                         <tr data-attachment-row="1" data-name="{{ attachment.display_name }}" data-type="{{ attachment.file_type_label }}" data-uploaded-ts="{{ attachment.uploaded_at|date:'U' }}" data-search-text="{{ attachment.display_name }} {{ attachment.original_name }} {{ attachment.file_type_label }}">
                             <td>
@@ -146,11 +183,12 @@
                                 </form>
                             </td>
                         </tr>
-                    {% empty %}
+                    {% endfor %}
+                    {% if not attachments and not editing_consumable.catalog_url %}
                         <tr data-attachment-empty="1">
                             <td colspan="6" class="text-center py-3">Вложения пока не добавлены.</td>
                         </tr>
-                    {% endfor %}
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -419,6 +457,27 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    function setupCatalogBrowse() {
+        const browseButton = document.getElementById("catalog-browse-btn");
+        const pathInput = document.getElementById("catalog_path");
+        const preview = document.getElementById("catalog-path-preview");
+
+        if (!browseButton || !pathInput || !preview) {
+            return;
+        }
+
+        browseButton.addEventListener("click", function () {
+            const currentPath = pathInput.value || "";
+            const selectedPath = window.prompt("Укажите путь к локальному каталогу", currentPath);
+            if (selectedPath === null) {
+                return;
+            }
+            const normalized = selectedPath.trim();
+            pathInput.value = normalized;
+            preview.textContent = normalized || "Каталог не выбран";
+        });
+    }
+
     function setupAttachmentListTools() {
         const searchInput = document.getElementById("attachment-search");
         const typeFilter = document.getElementById("attachment-type-filter");
@@ -496,6 +555,7 @@ document.addEventListener("DOMContentLoaded", function () {
         applyAttachmentFilters();
     }
 
+    setupCatalogBrowse();
     setupAttachmentListTools();
 
     function normalizeTag(value) {

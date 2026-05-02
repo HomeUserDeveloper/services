@@ -774,7 +774,7 @@ class StatusDirectory(models.Model):
         return f"{self.code}. {self.name}"
 
 
-class ClientEquipment(models.Model):
+class ClientEquipment(CatalogReferenceMixin, models.Model):
     organization = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,
@@ -1121,6 +1121,19 @@ class RepairDocumentAttachment(CatalogAttachmentBase):
     class Meta(CatalogAttachmentBase.Meta):
         verbose_name = "Вложение документа ремонта"
         verbose_name_plural = "Вложения документов ремонта"
+
+
+class ClientEquipmentAttachment(CatalogAttachmentBase):
+    client_equipment = models.ForeignKey(
+        ClientEquipment,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name="Техника клиента",
+    )
+
+    class Meta(CatalogAttachmentBase.Meta):
+        verbose_name = "Вложение техники клиента"
+        verbose_name_plural = "Вложения техники клиентов"
 
 
 class AcceptanceDocumentAttachment(CatalogAttachmentBase):

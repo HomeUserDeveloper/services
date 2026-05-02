@@ -65,6 +65,7 @@ from .models import (
     Address,
     Brand,
     ClientEquipment,
+    ClientEquipmentAttachment,
     Consumable,
     ConsumableAttachment,
     ConsumableCharacteristic,
@@ -2507,6 +2508,34 @@ def product_model_edit(request, model_id=None):
             edit_url = reverse("product_model_edit", kwargs={"model_id": editing_model.id})
             return redirect(f"{edit_url}?{qs}" if qs else edit_url)
 
+        if editing_model and action == "save_catalog":
+            catalog_path = request.POST.get("catalog_path", "")
+            editing_model.catalog_url = _normalize_catalog_reference(catalog_path)
+            editing_model.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог сохранен.")
+
+            qs = urlencode(post_back_params)
+            edit_url = reverse("product_model_edit", kwargs={"model_id": editing_model.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
+        if editing_model and action == "remove_catalog":
+            editing_model.catalog_url = ""
+            editing_model.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог удален.")
+
+            qs = urlencode(post_back_params)
+            edit_url = reverse("product_model_edit", kwargs={"model_id": editing_model.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
+        if editing_model and action == "open_catalog":
+            err = _open_catalog_in_explorer(editing_model.catalog_url)
+            if err:
+                messages.error(request, err)
+
+            qs = urlencode(post_back_params)
+            edit_url = reverse("product_model_edit", kwargs={"model_id": editing_model.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
         form = ProductModelForm(request.POST, instance=editing_model)
         if form.is_valid():
             saved = form.save()
@@ -2736,6 +2765,8 @@ def product_model_edit(request, model_id=None):
         "characteristic_types": characteristic_types,
         "attachments": attachments,
         "attachment_form": attachment_form,
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "product_model_edit.html", context)
 
@@ -3716,6 +3747,43 @@ def consumable_edit(request, consumable_id=None):
             edit_url = reverse("consumable_edit", kwargs={"consumable_id": editing_consumable.id})
             return redirect(f"{edit_url}?{qs}" if qs else edit_url)
 
+        if action == "save_catalog" and editing_consumable:
+            catalog_path = request.POST.get("catalog_path", "")
+            editing_consumable.catalog_url = _normalize_catalog_reference(catalog_path)
+            editing_consumable.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог сохранен.")
+
+            edit_params = dict(post_back_params)
+            if relation_query:
+                edit_params["relation_q"] = relation_query
+            qs = urlencode(edit_params)
+            edit_url = reverse("consumable_edit", kwargs={"consumable_id": editing_consumable.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
+        if action == "remove_catalog" and editing_consumable:
+            editing_consumable.catalog_url = ""
+            editing_consumable.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог удален.")
+
+            edit_params = dict(post_back_params)
+            if relation_query:
+                edit_params["relation_q"] = relation_query
+            qs = urlencode(edit_params)
+            edit_url = reverse("consumable_edit", kwargs={"consumable_id": editing_consumable.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
+        if action == "open_catalog" and editing_consumable:
+            err = _open_catalog_in_explorer(editing_consumable.catalog_url)
+            if err:
+                messages.error(request, err)
+
+            edit_params = dict(post_back_params)
+            if relation_query:
+                edit_params["relation_q"] = relation_query
+            qs = urlencode(edit_params)
+            edit_url = reverse("consumable_edit", kwargs={"consumable_id": editing_consumable.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
         form = ConsumableForm(request.POST, instance=editing_consumable)
         if form.is_valid():
             saved = form.save()
@@ -3791,6 +3859,8 @@ def consumable_edit(request, consumable_id=None):
         "attachment": back_attachment,
         "sort": back_sort,
         "dir": back_dir,
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "consumable_edit.html", context)
 
@@ -3969,6 +4039,43 @@ def part_edit(request, part_id=None):
             edit_url = reverse("part_edit", kwargs={"part_id": editing_part.id})
             return redirect(f"{edit_url}?{qs}" if qs else edit_url)
 
+        if action == "save_catalog" and editing_part:
+            catalog_path = request.POST.get("catalog_path", "")
+            editing_part.catalog_url = _normalize_catalog_reference(catalog_path)
+            editing_part.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог сохранен.")
+
+            edit_params = dict(post_back_params)
+            if relation_query:
+                edit_params["relation_q"] = relation_query
+            qs = urlencode(edit_params)
+            edit_url = reverse("part_edit", kwargs={"part_id": editing_part.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
+        if action == "remove_catalog" and editing_part:
+            editing_part.catalog_url = ""
+            editing_part.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог удален.")
+
+            edit_params = dict(post_back_params)
+            if relation_query:
+                edit_params["relation_q"] = relation_query
+            qs = urlencode(edit_params)
+            edit_url = reverse("part_edit", kwargs={"part_id": editing_part.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
+        if action == "open_catalog" and editing_part:
+            err = _open_catalog_in_explorer(editing_part.catalog_url)
+            if err:
+                messages.error(request, err)
+
+            edit_params = dict(post_back_params)
+            if relation_query:
+                edit_params["relation_q"] = relation_query
+            qs = urlencode(edit_params)
+            edit_url = reverse("part_edit", kwargs={"part_id": editing_part.id})
+            return redirect(f"{edit_url}?{qs}" if qs else edit_url)
+
         form = PartForm(request.POST, instance=editing_part)
         if form.is_valid():
             saved = form.save()
@@ -4044,6 +4151,8 @@ def part_edit(request, part_id=None):
         "attachment": back_attachment,
         "sort": back_sort,
         "dir": back_dir,
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "part_edit.html", context)
 
@@ -5245,7 +5354,8 @@ def acceptance_document_edit(request, document_id=None):
         "attachments": attachments,
         "attachment_form": attachment_form,
         "back_url": reverse("acceptance_document"),
-        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1"),
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "acceptance_document_edit.html", context)
 
@@ -5490,7 +5600,8 @@ def shipment_document_edit(request, document_id=None):
         "attachments": attachments,
         "attachment_form": attachment_form,
         "back_url": reverse("shipment_document"),
-        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1"),
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "shipment_document_edit.html", context)
 
@@ -8409,7 +8520,8 @@ def repair_document_edit(request, document_id=None):
         "attachment_form": attachment_form,
         "back_url": reverse("repair_document"),
         "is_status_change_create": bool(editing_document),
-        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1"),
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "repair_document_edit.html", context)
 
@@ -8524,6 +8636,8 @@ def client_equipment(request):
     if equipment_id:
         editing_equipment = get_object_or_404(ClientEquipment, id=equipment_id)
 
+    attachment_form = CatalogAttachmentForm()
+
     if request.method == "POST":
         action = request.POST.get("action", "save")
         target_id = request.POST.get("equipment_id")
@@ -8548,6 +8662,55 @@ def client_equipment(request):
         redirect_url = reverse("client_equipment")
         if params:
             redirect_url = f"{redirect_url}?{urlencode(params)}"
+
+        target_equipment = None
+        if target_id and str(target_id).isdigit():
+            target_equipment = get_object_or_404(ClientEquipment, id=int(target_id))
+
+        if action == "add_attachment" and target_equipment:
+            attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
+            if attachment_form.is_valid():
+                _save_catalog_attachment("client_equipment", target_equipment, ClientEquipmentAttachment, attachment_form)
+                messages.success(request, "Вложение добавлено.")
+            else:
+                messages.error(request, _first_form_error(attachment_form))
+            params["edit"] = target_equipment.id
+            return redirect(f"{reverse('client_equipment')}?{urlencode(params)}")
+
+        if action == "remove_attachment" and target_equipment:
+            attachment_id = request.POST.get("attachment_id", "").strip()
+            if attachment_id.isdigit():
+                attachment = get_object_or_404(
+                    ClientEquipmentAttachment,
+                    id=int(attachment_id),
+                    client_equipment=target_equipment,
+                )
+                attachment.delete()
+                messages.success(request, "Вложение удалено.")
+            params["edit"] = target_equipment.id
+            return redirect(f"{reverse('client_equipment')}?{urlencode(params)}")
+
+        if action == "save_catalog" and target_equipment:
+            catalog_path = request.POST.get("catalog_path", "")
+            target_equipment.catalog_url = _normalize_catalog_reference(catalog_path)
+            target_equipment.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог сохранен.")
+            params["edit"] = target_equipment.id
+            return redirect(f"{reverse('client_equipment')}?{urlencode(params)}")
+
+        if action == "remove_catalog" and target_equipment:
+            target_equipment.catalog_url = ""
+            target_equipment.save(update_fields=["catalog_url"])
+            messages.success(request, "Каталог удален.")
+            params["edit"] = target_equipment.id
+            return redirect(f"{reverse('client_equipment')}?{urlencode(params)}")
+
+        if action == "open_catalog" and target_equipment:
+            err = _open_catalog_in_explorer(target_equipment.catalog_url)
+            if err:
+                messages.error(request, err)
+            params["edit"] = target_equipment.id
+            return redirect(f"{reverse('client_equipment')}?{urlencode(params)}")
 
         if action == "delete" and target_id:
             target = get_object_or_404(ClientEquipment, id=target_id)
@@ -8577,6 +8740,10 @@ def client_equipment(request):
             org_id = request.GET.get("org_init", "").strip()
             if org_id and org_id.isdigit():
                 form.initial["organization"] = int(org_id)
+
+    attachments = ClientEquipmentAttachment.objects.none()
+    if editing_equipment:
+        attachments = editing_equipment.attachments.all()
 
     equipment_qs = ClientEquipment.objects.select_related("organization", "product_model").all()
     
@@ -8616,6 +8783,8 @@ def client_equipment(request):
     context = {
         "form": form,
         "editing_equipment": editing_equipment,
+        "attachments": attachments,
+        "attachment_form": attachment_form,
         "equipment_list": paged_equipment,
         "page_obj": page_obj,
         "per_page": per_page,
@@ -8626,6 +8795,8 @@ def client_equipment(request):
         "sort": sort,
         "direction": direction,
         "sort_links": sort_links,
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1")
+            or request.META.get("HTTP_HOST", "").split(":")[0] in ("localhost", "127.0.0.1"),
     }
     return render(request, "client_equipment.html", context)
 

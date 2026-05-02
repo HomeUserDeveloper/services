@@ -76,6 +76,154 @@
                 </form>
             </div>
         </div>
+
+        {% if editing_equipment %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <h2 class="h5 m-0">Файлы и каталог</h2>
+            </div>
+            <div class="card-body border-bottom">
+                <form method="post" class="row g-2 align-items-end mb-3" id="catalog-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_catalog">
+                    <input type="hidden" name="equipment_id" value="{{ editing_equipment.id }}">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="org" value="{{ org_filter }}">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="dir" value="{{ direction }}">
+                    <input type="hidden" id="catalog_path" name="catalog_path" value="{{ editing_equipment.catalog_url|default:'' }}">
+                    <div class="col-12 col-md-8">
+                        <label class="form-label">Локальный каталог</label>
+                        <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_equipment.catalog_url|default:'Каталог не выбран' }}</div>
+                    </div>
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="button" id="catalog-browse-btn" class="btn btn-outline-secondary">Обзор каталога</button>
+                    </div>
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+                    </div>
+                </form>
+                <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_attachment">
+                    <input type="hidden" name="equipment_id" value="{{ editing_equipment.id }}">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="org" value="{{ org_filter }}">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="dir" value="{{ direction }}">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="attachment-search">Название файла (поиск)</label>
+                        <input type="text" id="attachment-search" class="form-control" placeholder="Поиск по имени, исходному имени и типу" autocomplete="off">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label" for="attachment-type-filter">Тип</label>
+                        <select id="attachment-type-filter" class="form-select">
+                            <option value="">Все типы</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label" for="attachment-sort">Сортировка</label>
+                        <select id="attachment-sort" class="form-select">
+                            <option value="date_desc">Сначала новые</option>
+                            <option value="date_asc">Сначала старые</option>
+                            <option value="name_asc">Имя А-Я</option>
+                            <option value="name_desc">Имя Я-А</option>
+                            <option value="type_asc">Тип А-Я</option>
+                            <option value="type_desc">Тип Я-А</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label" for="{{ attachment_form.file.id_for_label }}">{{ attachment_form.file.label }}</label>
+                        {{ attachment_form.file }}
+                        <div class="form-text">Поддерживаются изображения, PDF, TXT, DOC, DOCX, XLS и XLSX.</div>
+                    </div>
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit" class="btn btn-outline-primary">Загрузить</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead><tr><th>Превью</th><th>Файл</th><th>Исходное имя</th><th>Тип</th><th>Дата загрузки</th><th>Действия</th></tr></thead>
+                        <tbody>
+                        {% if editing_equipment.catalog_url %}
+                            <tr data-attachment-row="1" data-name="Каталог" data-type="Каталог" data-uploaded-ts="0" data-search-text="каталог {{ editing_equipment.catalog_url }}">
+                                <td>-</td>
+                                <td><a href="{{ editing_equipment.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ editing_equipment.catalog_url }}</a></td>
+                                <td><input type="text" class="form-control form-control-sm" value="{{ editing_equipment.catalog_url }}" readonly></td>
+                                <td>Каталог</td>
+                                <td>-</td>
+                                <td class="d-flex gap-2">
+                                    {% if is_local_request %}
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="open_catalog">
+                                        <input type="hidden" name="equipment_id" value="{{ editing_equipment.id }}">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="org" value="{{ org_filter }}">
+                                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                                        <input type="hidden" name="sort" value="{{ sort }}">
+                                        <input type="hidden" name="dir" value="{{ direction }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Просмотр</button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" onsubmit="return confirm('Удалить каталог?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_catalog">
+                                        <input type="hidden" name="equipment_id" value="{{ editing_equipment.id }}">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="org" value="{{ org_filter }}">
+                                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                                        <input type="hidden" name="sort" value="{{ sort }}">
+                                        <input type="hidden" name="dir" value="{{ direction }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        {% for attachment in attachments %}
+                            <tr data-attachment-row="1" data-name="{{ attachment.display_name }}" data-type="{{ attachment.file_type_label }}" data-uploaded-ts="{{ attachment.uploaded_at|date:'U' }}" data-search-text="{{ attachment.display_name }} {{ attachment.original_name }} {{ attachment.file_type_label }}">
+                                <td>
+                                    {% if attachment.is_image %}
+                                        <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">
+                                            <img src="{{ attachment.file.url }}" alt="{{ attachment.display_name }}" style="max-width:64px; max-height:64px; object-fit:cover; border-radius:0.25rem;">
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td><a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">{{ attachment.display_name }}</a></td>
+                                <td><input type="text" class="form-control form-control-sm" value="{{ attachment.original_name }}" readonly></td>
+                                <td>{{ attachment.file_type_label }}</td>
+                                <td>{{ attachment.uploaded_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <form method="post" onsubmit="return confirm('Удалить вложение?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_attachment">
+                                        <input type="hidden" name="attachment_id" value="{{ attachment.id }}">
+                                        <input type="hidden" name="equipment_id" value="{{ editing_equipment.id }}">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="org" value="{{ org_filter }}">
+                                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                                        <input type="hidden" name="sort" value="{{ sort }}">
+                                        <input type="hidden" name="dir" value="{{ direction }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {% if not attachments and not editing_equipment.catalog_url %}
+                            <tr data-attachment-empty="1"><td colspan="6" class="text-center py-3">Вложения пока не добавлены.</td></tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <div class="col-12 col-xl-7">
@@ -157,6 +305,106 @@
 
 <script>
     (function () {
+        function setupCatalogBrowse() {
+            const browseButton = document.getElementById("catalog-browse-btn");
+            const pathInput = document.getElementById("catalog_path");
+            const preview = document.getElementById("catalog-path-preview");
+
+            if (!browseButton || !pathInput || !preview) {
+                return;
+            }
+
+            browseButton.addEventListener("click", function () {
+                const currentPath = pathInput.value || "";
+                const selectedPath = window.prompt("Укажите путь к локальному каталогу", currentPath);
+                if (selectedPath === null) {
+                    return;
+                }
+                const normalized = selectedPath.trim();
+                pathInput.value = normalized;
+                preview.textContent = normalized || "Каталог не выбран";
+            });
+        }
+
+        function setupAttachmentListTools() {
+            const searchInput = document.getElementById("attachment-search");
+            const typeFilter = document.getElementById("attachment-type-filter");
+            const sortSelect = document.getElementById("attachment-sort");
+            const attachmentRows = Array.from(document.querySelectorAll("tr[data-attachment-row='1']"));
+            const emptyRow = document.querySelector("tr[data-attachment-empty='1']");
+
+            if (!searchInput || !typeFilter || !sortSelect) {
+                return;
+            }
+
+            const normalize = (value) => (value || "").toLocaleLowerCase("ru-RU");
+            const uniqueTypes = Array.from(new Set(attachmentRows.map((row) => row.dataset.type || "").filter(Boolean))).sort((a, b) => a.localeCompare(b, "ru"));
+            uniqueTypes.forEach((type) => {
+                const option = document.createElement("option");
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            function applyFiltersAndSort() {
+                const query = normalize(searchInput.value.trim());
+                const selectedType = typeFilter.value;
+                const sortValue = sortSelect.value;
+
+                attachmentRows.forEach((row) => {
+                    const haystack = normalize(row.dataset.searchText || "");
+                    const rowType = row.dataset.type || "";
+                    const matchesQuery = !query || haystack.includes(query);
+                    const matchesType = !selectedType || rowType === selectedType;
+                    row.style.display = matchesQuery && matchesType ? "" : "none";
+                });
+
+                const visibleRows = attachmentRows.filter((row) => row.style.display !== "none");
+                visibleRows.sort((left, right) => {
+                    const leftName = left.dataset.name || "";
+                    const rightName = right.dataset.name || "";
+                    const leftType = left.dataset.type || "";
+                    const rightType = right.dataset.type || "";
+                    const leftTs = Number(left.dataset.uploadedTs || "0");
+                    const rightTs = Number(right.dataset.uploadedTs || "0");
+
+                    switch (sortValue) {
+                        case "date_asc":
+                            return leftTs - rightTs;
+                        case "name_asc":
+                            return leftName.localeCompare(rightName, "ru");
+                        case "name_desc":
+                            return rightName.localeCompare(leftName, "ru");
+                        case "type_asc":
+                            return leftType.localeCompare(rightType, "ru") || leftName.localeCompare(rightName, "ru");
+                        case "type_desc":
+                            return rightType.localeCompare(leftType, "ru") || leftName.localeCompare(rightName, "ru");
+                        case "date_desc":
+                        default:
+                            return rightTs - leftTs;
+                    }
+                });
+
+                const tbody = attachmentRows[0] ? attachmentRows[0].parentElement : null;
+                if (tbody) {
+                    visibleRows.forEach((row) => tbody.appendChild(row));
+                }
+
+                const hasVisibleRows = attachmentRows.some((row) => row.style.display !== "none");
+                if (emptyRow) {
+                    emptyRow.style.display = hasVisibleRows ? "none" : "";
+                }
+            }
+
+            searchInput.addEventListener("input", applyFiltersAndSort);
+            typeFilter.addEventListener("change", applyFiltersAndSort);
+            sortSelect.addEventListener("change", applyFiltersAndSort);
+            applyFiltersAndSort();
+        }
+
+        setupCatalogBrowse();
+        setupAttachmentListTools();
+
         function attachSelectFilter(searchInputId, selectId) {
             const searchInput = document.getElementById(searchInputId);
             const select = document.getElementById(selectId);
