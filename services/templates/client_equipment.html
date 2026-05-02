@@ -95,7 +95,10 @@
                     <input type="hidden" id="catalog_path" name="catalog_path" value="{{ editing_equipment.catalog_url|default:'' }}">
                     <div class="col-12 col-md-8">
                         <label class="form-label">Локальный каталог</label>
-                        <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_equipment.catalog_url|default:'Каталог не выбран' }}</div>
+                        <div class="input-group">
+                            <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_equipment.catalog_url|default:'Каталог не выбран' }}</div>
+                            <button type="button" id="catalog-clear-btn" class="btn btn-outline-secondary" title="Очистить поле" aria-label="Очистить поле">X</button>
+                        </div>
                     </div>
                     <div class="col-12 col-md-2 d-grid">
                         <button type="button" id="catalog-browse-btn" class="btn btn-outline-secondary">Обзор каталога</button>
@@ -306,12 +309,18 @@
 <script>
     (function () {
         function setupCatalogBrowse() {
+            const form = document.getElementById("catalog-form");
             const browseButton = document.getElementById("catalog-browse-btn");
+            const clearButton = document.getElementById("catalog-clear-btn");
             const pathInput = document.getElementById("catalog_path");
             const preview = document.getElementById("catalog-path-preview");
 
-            if (!browseButton || !pathInput || !preview) {
+            if (!form || !browseButton || !clearButton || !pathInput || !preview) {
                 return;
+            }
+
+            function syncPreview() {
+                preview.textContent = pathInput.value || "Каталог не выбран";
             }
 
             browseButton.addEventListener("click", function () {
@@ -322,7 +331,19 @@
                 }
                 const normalized = selectedPath.trim();
                 pathInput.value = normalized;
-                preview.textContent = normalized || "Каталог не выбран";
+                syncPreview();
+            });
+
+            clearButton.addEventListener("click", function () {
+                pathInput.value = "";
+                syncPreview();
+            });
+
+            form.addEventListener("submit", function () {
+                window.setTimeout(function () {
+                    pathInput.value = "";
+                    syncPreview();
+                }, 0);
             });
         }
 

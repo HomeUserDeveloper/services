@@ -5898,6 +5898,7 @@ def report_repair_document(request):
     linked_works = RepairDocumentWork.objects.none()
     linked_parts = RepairDocumentPart.objects.none()
     linked_consumables = RepairDocumentConsumable.objects.none()
+    linked_attachments = RepairDocumentAttachment.objects.none()
 
     if document_id.isdigit():
         selected_document = documents_qs.filter(id=int(document_id)).first()
@@ -5910,6 +5911,7 @@ def report_repair_document(request):
         linked_consumables = RepairDocumentConsumable.objects.select_related("consumable__brand").filter(
             repair_document=selected_document
         )
+        linked_attachments = selected_document.attachments.all()
 
     paged_documents, page_obj, per_page = _paginate_report_queryset(request, documents_qs)
 
@@ -5960,6 +5962,31 @@ def report_repair_document(request):
         sheet["B11"] = selected_document.note or "-"
 
         row = 13
+        sheet.cell(row=row, column=1, value="Файлы и каталог").font = Font(bold=True)
+        row += 1
+        for col, header in enumerate(["Тип", "Файл/ссылка", "Исходное имя", "Дата загрузки"], start=1):
+            sheet.cell(row=row, column=col, value=header).font = Font(bold=True)
+        row += 1
+
+        if selected_document.catalog_url:
+            sheet.cell(row=row, column=1, value="Каталог")
+            sheet.cell(row=row, column=2, value=selected_document.catalog_url)
+            sheet.cell(row=row, column=3, value=selected_document.catalog_url)
+            sheet.cell(row=row, column=4, value="-")
+            row += 1
+
+        for attachment in linked_attachments:
+            sheet.cell(row=row, column=1, value=attachment.file_type_label)
+            sheet.cell(row=row, column=2, value=attachment.display_name)
+            sheet.cell(row=row, column=3, value=attachment.original_name)
+            sheet.cell(row=row, column=4, value=attachment.uploaded_at.strftime("%d.%m.%Y %H:%M"))
+            row += 1
+
+        if not selected_document.catalog_url and not linked_attachments.exists():
+            sheet.cell(row=row, column=1, value="Каталог и вложения отсутствуют")
+            row += 1
+
+        row += 1
         sheet.cell(row=row, column=1, value="Работы").font = Font(bold=True)
         row += 1
         for col, header in enumerate(["Код", "Наименование", "Цена", "Количество"], start=1):
@@ -6073,6 +6100,7 @@ def report_repair_document(request):
         "linked_works": linked_works,
         "linked_parts": linked_parts,
         "linked_consumables": linked_consumables,
+        "linked_attachments": linked_attachments,
         "query": query,
         "organizations": Organization.objects.all().order_by("name"),
         "statuses": StatusDirectory.objects.all().order_by("code", "name"),
@@ -8551,6 +8579,7 @@ def repair_document_view(request, document_id):
         "linked_works": RepairDocumentWork.objects.select_related("work").filter(repair_document=item),
         "linked_parts": RepairDocumentPart.objects.select_related("part__brand").filter(repair_document=item),
         "linked_consumables": RepairDocumentConsumable.objects.select_related("consumable__brand").filter(repair_document=item),
+        "attachments": item.attachments.all(),
         "equipment_history": equipment_history,
         "back_url": reverse("repair_document"),
     }

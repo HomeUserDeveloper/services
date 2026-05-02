@@ -82,6 +82,48 @@
 {% endif %}
 
 <div class="card shadow-sm mb-4">
+    <div class="card-header"><h2 class="h5 m-0">Файлы и каталог</h2></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0 align-middle">
+                <thead><tr><th>Превью</th><th>Файл</th><th>Исходное имя</th><th>Тип</th><th>Дата загрузки</th></tr></thead>
+                <tbody>
+                {% if item.catalog_url %}
+                    <tr>
+                        <td>-</td>
+                        <td><a href="{{ item.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ item.catalog_url }}</a></td>
+                        <td><input type="text" class="form-control form-control-sm" value="{{ item.catalog_url }}" readonly></td>
+                        <td>Каталог</td>
+                        <td>-</td>
+                    </tr>
+                {% endif %}
+                {% for attachment in attachments %}
+                    <tr>
+                        <td>
+                            {% if attachment.is_image %}
+                                <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">
+                                    <img src="{{ attachment.file.url }}" alt="{{ attachment.display_name }}" style="max-width:64px; max-height:64px; object-fit:cover; border-radius:0.25rem;">
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">{{ attachment.display_name }}</a></td>
+                        <td><input type="text" class="form-control form-control-sm" value="{{ attachment.original_name }}" readonly></td>
+                        <td>{{ attachment.file_type_label }}</td>
+                        <td>{{ attachment.uploaded_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                {% endfor %}
+                {% if not attachments and not item.catalog_url %}
+                    <tr><td colspan="5" class="text-center py-3">Каталог и вложения отсутствуют.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
     <div class="card-header"><h2 class="h5 m-0">Работы</h2></div>
     <div class="card-body p-0">
         <div class="table-responsive">

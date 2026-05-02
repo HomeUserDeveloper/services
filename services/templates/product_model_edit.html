@@ -70,7 +70,10 @@
 
                 <div class="col-12 col-md-8">
                     <label class="form-label">Локальный каталог</label>
-                    <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_model.catalog_url|default:'Каталог не выбран' }}</div>
+                    <div class="input-group">
+                        <div id="catalog-path-preview" class="form-control bg-light text-truncate">{{ editing_model.catalog_url|default:'Каталог не выбран' }}</div>
+                        <button type="button" id="catalog-clear-btn" class="btn btn-outline-secondary" title="Очистить поле" aria-label="Очистить поле">X</button>
+                    </div>
                     {% if form.catalog_url.errors %}<div class="text-danger small mt-1">{{ form.catalog_url.errors|striptags }}</div>{% endif %}
                 </div>
                 <div class="col-12 col-md-2 d-grid">
@@ -519,12 +522,18 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     function setupCatalogBrowse() {
+        const form = document.getElementById("catalog-form");
         const browseButton = document.getElementById("catalog-browse-btn");
+        const clearButton = document.getElementById("catalog-clear-btn");
         const pathInput = document.getElementById("catalog_path");
         const preview = document.getElementById("catalog-path-preview");
 
-        if (!browseButton || !pathInput || !preview) {
+        if (!form || !browseButton || !clearButton || !pathInput || !preview) {
             return;
+        }
+
+        function syncPreview() {
+            preview.textContent = pathInput.value || "Каталог не выбран";
         }
 
         browseButton.addEventListener("click", function () {
@@ -535,7 +544,19 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             const normalized = selectedPath.trim();
             pathInput.value = normalized;
-            preview.textContent = normalized || "Каталог не выбран";
+            syncPreview();
+        });
+
+        clearButton.addEventListener("click", function () {
+            pathInput.value = "";
+            syncPreview();
+        });
+
+        form.addEventListener("submit", function () {
+            window.setTimeout(function () {
+                pathInput.value = "";
+                syncPreview();
+            }, 0);
         });
     }
 
