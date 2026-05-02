@@ -5839,7 +5839,14 @@ def report_repair_document(request):
             sheet["A8"] = "Инвентарный номер"
             sheet["B8"] = inventory
 
-        row = 10
+        sheet["A9"] = "Неисправность"
+        sheet["B9"] = selected_document.malfunction or "-"
+        sheet["A10"] = "Выполненные работы"
+        sheet["B10"] = selected_document.work_performed or "-"
+        sheet["A11"] = "Примечание"
+        sheet["B11"] = selected_document.note or "-"
+
+        row = 13
         sheet.cell(row=row, column=1, value="Работы").font = Font(bold=True)
         row += 1
         for col, header in enumerate(["Код", "Наименование", "Цена", "Количество"], start=1):
