@@ -5245,6 +5245,7 @@ def acceptance_document_edit(request, document_id=None):
         "attachments": attachments,
         "attachment_form": attachment_form,
         "back_url": reverse("acceptance_document"),
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1"),
     }
     return render(request, "acceptance_document_edit.html", context)
 
@@ -5489,6 +5490,7 @@ def shipment_document_edit(request, document_id=None):
         "attachments": attachments,
         "attachment_form": attachment_form,
         "back_url": reverse("shipment_document"),
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1"),
     }
     return render(request, "shipment_document_edit.html", context)
 
@@ -8407,6 +8409,7 @@ def repair_document_edit(request, document_id=None):
         "attachment_form": attachment_form,
         "back_url": reverse("repair_document"),
         "is_status_change_create": bool(editing_document),
+        "is_local_request": request.META.get("REMOTE_ADDR") in ("127.0.0.1", "::1"),
     }
     return render(request, "repair_document_edit.html", context)
 
