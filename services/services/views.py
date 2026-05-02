@@ -6056,6 +6056,61 @@ def report_repair_document(request):
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
+    if export_format == "excel_list":
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font
+        except ImportError:
+            messages.error(request, "Для экспорта в XLSX установите пакет openpyxl.")
+            return redirect(reverse("report_repair_document"))
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Документы ремонта"
+
+        sheet["A1"] = "Отчет: Документы ремонта"
+        sheet["A1"].font = Font(bold=True)
+
+        headers = ["ID", "Дата", "Организация", "Техника клиента", "Серийный номер", "Сервисный инженер", "Статус", "Дата ред. статуса"]
+        for col, header in enumerate(headers, start=1):
+            sheet.cell(row=3, column=col, value=header).font = Font(bold=True)
+
+        row = 4
+        for doc in documents_qs:
+            sheet.cell(row=row, column=1, value=doc.id)
+            sheet.cell(row=row, column=2, value=doc.date.strftime("%d.%m.%Y"))
+            sheet.cell(row=row, column=3, value=doc.organization.name if doc.organization_id else "-")
+            sheet.cell(row=row, column=4, value=doc.client_equipment.product_model.name if doc.client_equipment_id and doc.client_equipment.product_model_id else "-")
+            sheet.cell(row=row, column=5, value=doc.client_equipment.serial_number if doc.client_equipment_id else "-")
+            sheet.cell(row=row, column=6, value=doc.serviceman.full_name if doc.serviceman_id else "-")
+            sheet.cell(row=row, column=7, value=doc.status.name if doc.status_id else "-")
+            sheet.cell(row=row, column=8, value=doc.status_edited_at.strftime("%d.%m.%Y %H:%M") if doc.status_edited_at else "-")
+            row += 1
+
+        if row == 4:
+            sheet.cell(row=row, column=1, value="Список пуст")
+
+        sheet.column_dimensions["A"].width = 10
+        sheet.column_dimensions["B"].width = 12
+        sheet.column_dimensions["C"].width = 25
+        sheet.column_dimensions["D"].width = 25
+        sheet.column_dimensions["E"].width = 18
+        sheet.column_dimensions["F"].width = 22
+        sheet.column_dimensions["G"].width = 18
+        sheet.column_dimensions["H"].width = 20
+
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
+
+        filename = "repair_documents_list.xlsx"
+        response = HttpResponse(
+            output.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
     sort_links = {}
     for key in sort_map:
         next_dir = "desc" if sort == key and direction == "asc" else "asc"
