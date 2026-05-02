@@ -7,8 +7,30 @@ from django.db.models import Q
 from django.db.models.functions import Lower
 
 
-ATTACHMENT_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "pdf"]
+ATTACHMENT_ALLOWED_EXTENSIONS = [
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp",
+    "bmp",
+    "pdf",
+    "txt",
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+]
 ATTACHMENT_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+
+ATTACHMENT_TYPE_LABELS = {
+    ".pdf": "PDF",
+    ".txt": "TXT",
+    ".doc": "DOC",
+    ".docx": "DOCX",
+    ".xls": "XLS",
+    ".xlsx": "XLSX",
+}
 
 
 def catalog_attachment_upload_to(instance, filename):
@@ -43,6 +65,16 @@ class CatalogAttachmentBase(models.Model):
     @property
     def is_image(self):
         return Path(self.file.name).suffix.lower() in ATTACHMENT_IMAGE_EXTENSIONS
+
+    @property
+    def extension(self):
+        return Path(self.file.name).suffix.lower()
+
+    @property
+    def file_type_label(self):
+        if self.is_image:
+            return "Фото"
+        return ATTACHMENT_TYPE_LABELS.get(self.extension, self.extension.lstrip(".").upper() or "Файл")
 
     def __str__(self):
         return self.display_name

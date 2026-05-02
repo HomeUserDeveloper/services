@@ -81,7 +81,7 @@
                 <div class="col-12 col-md-6">
                     <label class="form-label" for="{{ attachment_form.file.id_for_label }}">{{ attachment_form.file.label }}</label>
                     {{ attachment_form.file }}
-                    <div class="form-text">Поддерживаются изображения и PDF.</div>
+                    <div class="form-text">Поддерживаются изображения, PDF, TXT, DOC, DOCX, XLS и XLSX.</div>
                 </div>
                 <div class="col-12 col-md-2 d-grid">
                     <button type="submit" class="btn btn-outline-primary">Загрузить</button>
@@ -115,7 +115,7 @@
                             <td>
                                 <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">{{ attachment.display_name }}</a>
                             </td>
-                            <td>{% if attachment.is_image %}Фото{% else %}PDF{% endif %}</td>
+                            <td>{{ attachment.file_type_label }}</td>
                             <td>{{ attachment.uploaded_at|date:"d.m.Y H:i" }}</td>
                             <td>
                                 <form method="post" onsubmit="return confirm('Удалить вложение?');">

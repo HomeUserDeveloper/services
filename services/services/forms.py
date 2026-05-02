@@ -260,14 +260,16 @@ class CatalogAttachmentForm(forms.Form):
     )
     file = forms.FileField(
         label="Файл",
-        widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".pdf,image/*"}),
+        widget=forms.ClearableFileInput(
+            attrs={"class": "form-control", "accept": ".pdf,.txt,.doc,.docx,.xls,.xlsx,image/*"}
+        ),
     )
 
     def clean_file(self):
         uploaded_file = self.cleaned_data["file"]
         extension = Path(uploaded_file.name).suffix.lower().lstrip(".")
         if extension not in ATTACHMENT_ALLOWED_EXTENSIONS:
-            raise forms.ValidationError("Допустимы только изображения и PDF.")
+            raise forms.ValidationError("Допустимы изображения, PDF, TXT, DOC, DOCX, XLS и XLSX.")
         return uploaded_file
 
 
