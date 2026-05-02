@@ -5821,13 +5821,21 @@ def report_repair_document(request):
         sheet["A2"] = "Дата"
         sheet["B2"] = selected_document.date.strftime("%d.%m.%Y")
         sheet["A3"] = "Организация"
-        sheet["B3"] = selected_document.organization.name
+        sheet["B3"] = selected_document.organization.name if selected_document.organization_id else "-"
         sheet["A4"] = "Сервисный инженер"
         sheet["B4"] = selected_document.serviceman.full_name if selected_document.serviceman_id else "-"
         sheet["A5"] = "Статус"
         sheet["B5"] = selected_document.status.name if selected_document.status_id else "-"
 
-        row = 7
+        if selected_document.client_equipment_id:
+            eq = selected_document.client_equipment
+            model_name = eq.product_model.name if eq.product_model_id else "-"
+            serial = eq.serial_number or "-"
+            inventory = eq.inventory_number or "-"
+            sheet["A6"] = "Техника клиента"
+            sheet["B6"] = f"{model_name} | С/н: {serial} | Инв: {inventory}"
+
+        row = 8
         sheet.cell(row=row, column=1, value="Работы").font = Font(bold=True)
         row += 1
         for col, header in enumerate(["Код", "Наименование", "Цена", "Количество"], start=1):
