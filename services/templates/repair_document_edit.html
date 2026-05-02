@@ -15,7 +15,7 @@
 
 <div class="card shadow-sm mb-4">
     <div class="card-body">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="action" value="save">
 
@@ -151,6 +151,11 @@
                     {{ form.note }}
                     {% if form.note.errors %}<div class="text-danger small mt-1">{{ form.note.errors|striptags }}</div>{% endif %}
                 </div>
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.catalog_url.id_for_label }}">{{ form.catalog_url.label }}</label>
+                    {{ form.catalog_url }}
+                    {% if form.catalog_url.errors %}<div class="text-danger small mt-1">{{ form.catalog_url.errors|striptags }}</div>{% endif %}
+                </div>
             </div>
 
             <div class="d-flex gap-2 mt-3">
@@ -164,6 +169,83 @@
 </div>
 
 {% if editing_document %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h2 class="h5 m-0">Файлы и каталог</h2>
+        </div>
+        <div class="card-body border-bottom">
+            {% if editing_document.catalog_url %}
+                <div class="mb-3">
+                    <div class="text-muted small">Ссылка на каталог:</div>
+                    <a href="{{ editing_document.catalog_url }}" target="_blank" rel="noopener noreferrer">{{ editing_document.catalog_url }}</a>
+                </div>
+            {% endif %}
+            <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_attachment">
+                <input type="hidden" name="works_q" value="{{ works_query }}">
+                <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="{{ attachment_form.title.id_for_label }}">{{ attachment_form.title.label }}</label>
+                    {{ attachment_form.title }}
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="{{ attachment_form.file.id_for_label }}">{{ attachment_form.file.label }}</label>
+                    {{ attachment_form.file }}
+                    <div class="form-text">Поддерживаются изображения, PDF, TXT, DOC, DOCX, XLS и XLSX.</div>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">Загрузить</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead><tr><th>Превью</th><th>Файл</th><th>Тип</th><th>Дата загрузки</th><th>Действия</th></tr></thead>
+                    <tbody>
+                    {% for attachment in attachments %}
+                        <tr>
+                            <td>
+                                {% if attachment.is_image %}
+                                    <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">
+                                        <img src="{{ attachment.file.url }}" alt="{{ attachment.display_name }}" style="max-width:64px; max-height:64px; object-fit:cover; border-radius:0.25rem;">
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td><a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">{{ attachment.display_name }}</a></td>
+                            <td>{{ attachment.file_type_label }}</td>
+                            <td>{{ attachment.uploaded_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Удалить вложение?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_attachment">
+                                    <input type="hidden" name="attachment_id" value="{{ attachment.id }}">
+                                    <input type="hidden" name="works_q" value="{{ works_query }}">
+                                    <input type="hidden" name="works_filter" value="{{ works_filter }}">
+                                    <input type="hidden" name="works_sort" value="{{ works_sort }}">
+                                    <input type="hidden" name="works_dir" value="{{ works_direction }}">
+                                    <input type="hidden" name="parts_q" value="{{ parts_query }}">
+                                    <input type="hidden" name="cons_q" value="{{ consumables_query }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center py-3">Вложения пока не добавлены.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm mb-4">
         <div class="card-header">
             <h2 class="h5 m-0">Работы</h2>

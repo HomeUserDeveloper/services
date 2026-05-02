@@ -58,6 +58,7 @@ from .forms import (
 )
 from .models import (
     AcceptanceDocument,
+    AcceptanceDocumentAttachment,
     AcceptanceDocumentEquipment,
     Address,
     Brand,
@@ -79,10 +80,12 @@ from .models import (
     ProductModelAttachment,
     ProductModelCharacteristic,
     RepairDocument,
+    RepairDocumentAttachment,
     RepairDocumentConsumable,
     RepairDocumentPart,
     RepairDocumentWork,
     ShipmentDocument,
+    ShipmentDocumentAttachment,
     ShipmentDocumentEquipment,
     ServiceExchangeLog,
     ServiceCenter,
@@ -5052,6 +5055,7 @@ def acceptance_document_edit(request, document_id=None):
     editing_document = get_object_or_404(AcceptanceDocument, id=document_id) if document_id else None
     ask_add_serial = request.GET.get("ask_add_serial", "").strip()
     serial_query = request.GET.get("serial", "").strip()
+    attachment_form = CatalogAttachmentForm()
 
     if request.method == "POST":
         action = request.POST.get("action", "save")
@@ -5126,6 +5130,27 @@ def acceptance_document_edit(request, document_id=None):
                 link.delete()
                 messages.success(request, "Строка техники удалена из документа приемки.")
             return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "add_attachment" and editing_document:
+            attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
+            if attachment_form.is_valid():
+                _save_catalog_attachment("acceptance_document", editing_document, AcceptanceDocumentAttachment, attachment_form)
+                messages.success(request, "Вложение добавлено.")
+            else:
+                messages.error(request, _first_form_error(attachment_form))
+            return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "remove_attachment" and editing_document:
+            attachment_id = request.POST.get("attachment_id", "").strip()
+            if attachment_id.isdigit():
+                attachment = get_object_or_404(
+                    AcceptanceDocumentAttachment,
+                    id=int(attachment_id),
+                    acceptance_document=editing_document,
+                )
+                attachment.delete()
+                messages.success(request, "Вложение удалено.")
+            return redirect(reverse("acceptance_document_edit", kwargs={"document_id": editing_document.id}))
     else:
         initial = {"date": timezone.localdate()} if not editing_document else {}
         selected_org = request.GET.get("organization", "").strip()
@@ -5134,6 +5159,7 @@ def acceptance_document_edit(request, document_id=None):
         form = AcceptanceDocumentForm(instance=editing_document, initial=initial)
 
     linked_equipment = AcceptanceDocumentEquipment.objects.none()
+    attachments = AcceptanceDocumentAttachment.objects.none()
     if editing_document:
         linked_equipment = AcceptanceDocumentEquipment.objects.select_related(
             "client_equipment__product_model",
@@ -5142,6 +5168,7 @@ def acceptance_document_edit(request, document_id=None):
         ).filter(
             acceptance_document=editing_document
         )
+        attachments = editing_document.attachments.all()
 
     add_equipment_url = ""
     if editing_document and ask_add_serial:
@@ -5154,6 +5181,8 @@ def acceptance_document_edit(request, document_id=None):
         "serial_query": serial_query,
         "ask_add_serial": ask_add_serial,
         "add_equipment_url": add_equipment_url,
+        "attachments": attachments,
+        "attachment_form": attachment_form,
         "back_url": reverse("acceptance_document"),
     }
     return render(request, "acceptance_document_edit.html", context)
@@ -5260,6 +5289,7 @@ def shipment_document(request):
 def shipment_document_edit(request, document_id=None):
     editing_document = get_object_or_404(ShipmentDocument, id=document_id) if document_id else None
     serial_query = request.GET.get("serial", "").strip()
+    attachment_form = CatalogAttachmentForm()
 
     if request.method == "POST":
         action = request.POST.get("action", "save")
@@ -5331,6 +5361,27 @@ def shipment_document_edit(request, document_id=None):
                 link.delete()
                 messages.success(request, "Строка техники удалена из документа отгрузки.")
             return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "add_attachment" and editing_document:
+            attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
+            if attachment_form.is_valid():
+                _save_catalog_attachment("shipment_document", editing_document, ShipmentDocumentAttachment, attachment_form)
+                messages.success(request, "Вложение добавлено.")
+            else:
+                messages.error(request, _first_form_error(attachment_form))
+            return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
+
+        elif action == "remove_attachment" and editing_document:
+            attachment_id = request.POST.get("attachment_id", "").strip()
+            if attachment_id.isdigit():
+                attachment = get_object_or_404(
+                    ShipmentDocumentAttachment,
+                    id=int(attachment_id),
+                    shipment_document=editing_document,
+                )
+                attachment.delete()
+                messages.success(request, "Вложение удалено.")
+            return redirect(reverse("shipment_document_edit", kwargs={"document_id": editing_document.id}))
     else:
         initial = {"date": timezone.localdate()} if not editing_document else {}
         selected_org = request.GET.get("organization", "").strip()
@@ -5339,6 +5390,7 @@ def shipment_document_edit(request, document_id=None):
         form = ShipmentDocumentForm(instance=editing_document, initial=initial)
 
     linked_equipment = ShipmentDocumentEquipment.objects.none()
+    attachments = ShipmentDocumentAttachment.objects.none()
     if editing_document:
         linked_equipment = ShipmentDocumentEquipment.objects.select_related(
             "client_equipment__product_model",
@@ -5347,12 +5399,15 @@ def shipment_document_edit(request, document_id=None):
         ).filter(
             shipment_document=editing_document
         )
+        attachments = editing_document.attachments.all()
 
     context = {
         "form": form,
         "editing_document": editing_document,
         "linked_equipment": linked_equipment,
         "serial_query": serial_query,
+        "attachments": attachments,
+        "attachment_form": attachment_form,
         "back_url": reverse("shipment_document"),
     }
     return render(request, "shipment_document_edit.html", context)
@@ -7883,6 +7938,8 @@ def repair_document_edit(request, document_id=None):
     if works_direction not in {"asc", "desc"}:
         works_direction = "asc"
 
+    attachment_form = CatalogAttachmentForm()
+
     if request.method == "POST":
         action = request.POST.get("action", "save")
 
@@ -8063,6 +8120,25 @@ def repair_document_edit(request, document_id=None):
                     )
                     messages.success(request, f"Работа «{work_name}» удалена из документа.")
 
+            elif action == "add_attachment":
+                attachment_form = CatalogAttachmentForm(request.POST, request.FILES)
+                if attachment_form.is_valid():
+                    _save_catalog_attachment("repair_document", editing_document, RepairDocumentAttachment, attachment_form)
+                    messages.success(request, "Вложение добавлено.")
+                else:
+                    messages.error(request, _first_form_error(attachment_form))
+
+            elif action == "remove_attachment":
+                attachment_id = request.POST.get("attachment_id", "").strip()
+                if attachment_id.isdigit():
+                    attachment = get_object_or_404(
+                        RepairDocumentAttachment,
+                        id=int(attachment_id),
+                        repair_document=editing_document,
+                    )
+                    attachment.delete()
+                    messages.success(request, "Вложение удалено.")
+
             redirect_params = {}
             if works_query:
                 redirect_params["works_q"] = works_query
@@ -8097,6 +8173,7 @@ def repair_document_edit(request, document_id=None):
     linked_parts = RepairDocumentPart.objects.none()
     linked_consumables = RepairDocumentConsumable.objects.none()
     linked_works = RepairDocumentWork.objects.none()
+    attachments = RepairDocumentAttachment.objects.none()
     part_form = RepairDocumentPartForm()
     consumable_form = RepairDocumentConsumableForm()
     work_form = RepairDocumentWorkForm()
@@ -8112,6 +8189,7 @@ def repair_document_edit(request, document_id=None):
         linked_consumables = RepairDocumentConsumable.objects.select_related("consumable__brand", "consumable__category").filter(
             repair_document=editing_document
         )
+        attachments = editing_document.attachments.all()
 
         part_candidates = Part.objects.select_related("brand", "category").exclude(
             id__in=linked_parts.values_list("part_id", flat=True)
@@ -8210,6 +8288,8 @@ def repair_document_edit(request, document_id=None):
         "works_sort_links": works_sort_links,
         "parts_query": parts_query,
         "consumables_query": consumables_query,
+        "attachments": attachments,
+        "attachment_form": attachment_form,
         "back_url": reverse("repair_document"),
         "is_status_change_create": bool(editing_document),
     }

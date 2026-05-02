@@ -904,6 +904,7 @@ class RepairDocument(models.Model):
     malfunction = models.TextField("Неисправность", blank=True)
     work_performed = models.TextField("Выполненные работы", blank=True)
     note = models.TextField("Примечание", blank=True)
+    catalog_url = models.URLField("Ссылка на каталог", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -981,6 +982,7 @@ class AcceptanceDocument(models.Model):
         related_name="acceptance_documents",
         verbose_name="Организация",
     )
+    catalog_url = models.URLField("Ссылка на каталог", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1047,6 +1049,7 @@ class ShipmentDocument(models.Model):
         related_name="shipment_documents",
         verbose_name="Организация",
     )
+    catalog_url = models.URLField("Ссылка на каталог", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1095,6 +1098,45 @@ class ShipmentDocumentEquipment(models.Model):
 
     def __str__(self):
         return f"{self.shipment_document} / {self.client_equipment}"
+
+
+class RepairDocumentAttachment(CatalogAttachmentBase):
+    repair_document = models.ForeignKey(
+        RepairDocument,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name="Документ ремонта",
+    )
+
+    class Meta(CatalogAttachmentBase.Meta):
+        verbose_name = "Вложение документа ремонта"
+        verbose_name_plural = "Вложения документов ремонта"
+
+
+class AcceptanceDocumentAttachment(CatalogAttachmentBase):
+    acceptance_document = models.ForeignKey(
+        AcceptanceDocument,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name="Документ приемки",
+    )
+
+    class Meta(CatalogAttachmentBase.Meta):
+        verbose_name = "Вложение документа приемки"
+        verbose_name_plural = "Вложения документов приемки"
+
+
+class ShipmentDocumentAttachment(CatalogAttachmentBase):
+    shipment_document = models.ForeignKey(
+        ShipmentDocument,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name="Документ отгрузки",
+    )
+
+    class Meta(CatalogAttachmentBase.Meta):
+        verbose_name = "Вложение документа отгрузки"
+        verbose_name_plural = "Вложения документов отгрузки"
 
 
 class RepairDocumentPart(models.Model):

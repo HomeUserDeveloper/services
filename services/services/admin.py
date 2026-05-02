@@ -11,6 +11,9 @@ from urllib.parse import urlencode
 from types import MethodType
 
 from .models import (
+    AcceptanceDocument,
+    AcceptanceDocumentAttachment,
+    AcceptanceDocumentEquipment,
     Address,
     Brand,
     ClientEquipment,
@@ -30,11 +33,19 @@ from .models import (
     ProductModel,
     ProductModelAttachment,
     ProductModelCharacteristic,
+    RepairDocument,
+    RepairDocumentAttachment,
+    RepairDocumentConsumable,
+    RepairDocumentPart,
+    RepairDocumentWork,
     ServiceCenter,
     ServiceCenterAddress,
     ServiceCenterContact,
     ServiceMan,
     StatusDirectory,
+    ShipmentDocument,
+    ShipmentDocumentAttachment,
+    ShipmentDocumentEquipment,
     WorkDirectory,
     WorkDirectoryConsumable,
     WorkDirectoryPart,
@@ -143,7 +154,8 @@ ADMIN_SECTION_ORDER = {
     "Контрагенты": 10,
     "Каталог оборудования": 20,
     "Сервис и работы": 30,
-    "Адреса и статусы": 40,
+    "Документы": 40,
+    "Адреса и статусы": 50,
 }
 
 
@@ -173,6 +185,17 @@ ADMIN_MODEL_SECTIONS = {
     "WorkDirectoryConsumable": "Сервис и работы",
     "WorkDirectoryPart": "Сервис и работы",
     "ClientEquipment": "Сервис и работы",
+    "RepairDocument": "Документы",
+    "RepairDocumentWork": "Документы",
+    "RepairDocumentPart": "Документы",
+    "RepairDocumentConsumable": "Документы",
+    "RepairDocumentAttachment": "Документы",
+    "AcceptanceDocument": "Документы",
+    "AcceptanceDocumentEquipment": "Документы",
+    "AcceptanceDocumentAttachment": "Документы",
+    "ShipmentDocument": "Документы",
+    "ShipmentDocumentEquipment": "Документы",
+    "ShipmentDocumentAttachment": "Документы",
     "Address": "Адреса и статусы",
     "StatusDirectory": "Адреса и статусы",
 }
@@ -204,6 +227,17 @@ ADMIN_MODEL_ORDER = {
     "WorkDirectoryConsumable": 30,
     "WorkDirectoryPart": 40,
     "ClientEquipment": 50,
+    "RepairDocument": 10,
+    "RepairDocumentWork": 20,
+    "RepairDocumentPart": 30,
+    "RepairDocumentConsumable": 40,
+    "RepairDocumentAttachment": 50,
+    "AcceptanceDocument": 60,
+    "AcceptanceDocumentEquipment": 70,
+    "AcceptanceDocumentAttachment": 80,
+    "ShipmentDocument": 90,
+    "ShipmentDocumentEquipment": 100,
+    "ShipmentDocumentAttachment": 110,
     "Address": 10,
     "StatusDirectory": 20,
 }
@@ -321,7 +355,7 @@ def _grouped_get_app_list(self, request, app_label=None):
 
 admin.site.site_header = "Администрирование Services"
 admin.site.site_title = "Services Admin"
-admin.site.index_title = "Справочники и настройки"
+admin.site.index_title = "Справочники, документы и настройки"
 admin.site.get_app_list = MethodType(_grouped_get_app_list, admin.site)
 
 
@@ -730,6 +764,110 @@ class ClientEquipmentAdmin(SearchableAdminMixin, admin.ModelAdmin):
     )
     autocomplete_fields = ("organization", "product_model")
     list_select_related = ("organization", "product_model", "product_model__brand", "product_model__category")
+
+
+@admin.register(RepairDocument)
+class RepairDocumentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("id", "date", "organization", "serviceman", "status", "client_equipment", "updated_at")
+    list_filter = ("repair_place", "status", "organization", "serviceman")
+    search_fields = ("id", "organization__name", "serviceman__full_name", "client_equipment__serial_number", "note")
+    autocomplete_fields = ("organization", "serviceman", "status", "client_equipment", "service_center", "service_center_address", "source_document")
+    list_select_related = (
+        "organization",
+        "serviceman",
+        "status",
+        "client_equipment",
+        "service_center",
+        "service_center_address",
+        "source_document",
+    )
+
+
+@admin.register(RepairDocumentWork)
+class RepairDocumentWorkAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("repair_document", "work", "quantity", "created_at")
+    list_filter = ("work",)
+    search_fields = ("repair_document__id", "work__code", "work__name")
+    autocomplete_fields = ("repair_document", "work")
+    list_select_related = ("repair_document", "work")
+
+
+@admin.register(RepairDocumentPart)
+class RepairDocumentPartAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("repair_document", "part", "manual_quantity", "work_quantity", "quantity", "created_at")
+    list_filter = ("part__brand",)
+    search_fields = ("repair_document__id", "part__name", "part__sku")
+    autocomplete_fields = ("repair_document", "part")
+    list_select_related = ("repair_document", "part", "part__brand")
+
+
+@admin.register(RepairDocumentConsumable)
+class RepairDocumentConsumableAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("repair_document", "consumable", "manual_quantity", "work_quantity", "quantity", "created_at")
+    list_filter = ("consumable__brand",)
+    search_fields = ("repair_document__id", "consumable__name", "consumable__sku")
+    autocomplete_fields = ("repair_document", "consumable")
+    list_select_related = ("repair_document", "consumable", "consumable__brand")
+
+
+@admin.register(RepairDocumentAttachment)
+class RepairDocumentAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("display_name", "repair_document", "uploaded_at")
+    search_fields = ("title", "file", "repair_document__id")
+    autocomplete_fields = ("repair_document",)
+    list_select_related = ("repair_document",)
+
+
+@admin.register(AcceptanceDocument)
+class AcceptanceDocumentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("id", "date", "organization", "serviceman", "updated_at")
+    list_filter = ("organization", "serviceman")
+    search_fields = ("id", "organization__name", "serviceman__full_name")
+    autocomplete_fields = ("organization", "serviceman")
+    list_select_related = ("organization", "serviceman")
+
+
+@admin.register(AcceptanceDocumentEquipment)
+class AcceptanceDocumentEquipmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("acceptance_document", "client_equipment", "repair_document", "created_at")
+    list_filter = ("acceptance_document__organization",)
+    search_fields = ("acceptance_document__id", "client_equipment__serial_number", "client_equipment__inventory_number")
+    autocomplete_fields = ("acceptance_document", "client_equipment", "repair_document")
+    list_select_related = ("acceptance_document", "client_equipment", "repair_document")
+
+
+@admin.register(AcceptanceDocumentAttachment)
+class AcceptanceDocumentAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("display_name", "acceptance_document", "uploaded_at")
+    search_fields = ("title", "file", "acceptance_document__id")
+    autocomplete_fields = ("acceptance_document",)
+    list_select_related = ("acceptance_document",)
+
+
+@admin.register(ShipmentDocument)
+class ShipmentDocumentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("id", "date", "organization", "serviceman", "updated_at")
+    list_filter = ("organization", "serviceman")
+    search_fields = ("id", "organization__name", "serviceman__full_name")
+    autocomplete_fields = ("organization", "serviceman")
+    list_select_related = ("organization", "serviceman")
+
+
+@admin.register(ShipmentDocumentEquipment)
+class ShipmentDocumentEquipmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("shipment_document", "client_equipment", "repair_document", "created_at")
+    list_filter = ("shipment_document__organization",)
+    search_fields = ("shipment_document__id", "client_equipment__serial_number", "client_equipment__inventory_number")
+    autocomplete_fields = ("shipment_document", "client_equipment", "repair_document")
+    list_select_related = ("shipment_document", "client_equipment", "repair_document")
+
+
+@admin.register(ShipmentDocumentAttachment)
+class ShipmentDocumentAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
+    list_display = ("display_name", "shipment_document", "uploaded_at")
+    search_fields = ("title", "file", "shipment_document__id")
+    autocomplete_fields = ("shipment_document",)
+    list_select_related = ("shipment_document",)
 
 
 try:

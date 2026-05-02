@@ -304,11 +304,12 @@ class AddressForm(forms.ModelForm):
 class AcceptanceDocumentForm(forms.ModelForm):
     class Meta:
         model = AcceptanceDocument
-        fields = ("date", "serviceman", "organization")
+        fields = ("date", "serviceman", "organization", "catalog_url")
         widgets = {
             "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
             "serviceman": forms.Select(attrs={"class": "form-select"}),
             "organization": forms.Select(attrs={"class": "form-select"}),
+            "catalog_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://example.com/catalog-folder"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -330,11 +331,12 @@ class AcceptanceDocumentForm(forms.ModelForm):
 class ShipmentDocumentForm(forms.ModelForm):
     class Meta:
         model = ShipmentDocument
-        fields = ("date", "serviceman", "organization")
+        fields = ("date", "serviceman", "organization", "catalog_url")
         widgets = {
             "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
             "serviceman": forms.Select(attrs={"class": "form-select"}),
             "organization": forms.Select(attrs={"class": "form-select"}),
+            "catalog_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://example.com/catalog-folder"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -402,6 +404,7 @@ class RepairDocumentForm(forms.ModelForm):
             "malfunction",
             "work_performed",
             "note",
+            "catalog_url",
         )
         widgets = {
             "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
@@ -415,6 +418,7 @@ class RepairDocumentForm(forms.ModelForm):
             "malfunction": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "work_performed": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "note": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "catalog_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://example.com/catalog-folder"}),
         }
 
     def __init__(self, *args, **kwargs):
