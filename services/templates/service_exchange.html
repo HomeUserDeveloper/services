@@ -63,8 +63,9 @@
                     </select>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 d-flex gap-2 align-items-center">
                     <button type="submit" class="btn btn-success">Скачать выгрузку</button>
+                    <button type="button" id="export-reset-btn" class="btn btn-outline-secondary">Сброс</button>
                 </div>
             </form>
         {% elif mode == 'import' %}
@@ -114,8 +115,9 @@
                     </div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 d-flex gap-2 align-items-center">
                     <button type="submit" class="btn btn-primary">Запустить загрузку</button>
+                    <button type="button" id="import-reset-btn" class="btn btn-outline-secondary">Сброс</button>
                 </div>
             </form>
 
@@ -293,8 +295,9 @@
                     <div class="form-text">Для запуска очистки введите точную фразу: ОЧИСТИТЬ</div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 d-flex gap-2 align-items-center">
                     <button type="submit" class="btn btn-danger">Запустить очистку</button>
+                    <button type="button" id="cleanup-reset-btn" class="btn btn-outline-secondary">Сброс</button>
                 </div>
             </form>
 
@@ -443,6 +446,25 @@
         bindModeSwitch("sel_all", "sel_specific", "exchange-item");
         bindModeSwitch("imp_sel_all", "imp_sel_specific", "import-item");
         bindModeSwitch("clean_sel_all", "clean_sel_specific", "cleanup-item");
+
+        function bindResetBtn(btnId, specificRadioId, itemClass) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.addEventListener("click", function () {
+                const specificRadio = document.getElementById(specificRadioId);
+                if (specificRadio) {
+                    specificRadio.checked = true;
+                    specificRadio.dispatchEvent(new Event("change"));
+                }
+                document.querySelectorAll("." + itemClass).forEach(function (cb) {
+                    cb.checked = false;
+                });
+            });
+        }
+
+        bindResetBtn("export-reset-btn", "sel_specific", "exchange-item");
+        bindResetBtn("import-reset-btn", "imp_sel_specific", "import-item");
+        bindResetBtn("cleanup-reset-btn", "clean_sel_specific", "cleanup-item");
     })();
 </script>
 {% endblock %}
