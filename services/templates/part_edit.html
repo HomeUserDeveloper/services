@@ -73,10 +73,27 @@
                 <input type="hidden" name="part_id" value="{{ editing_part.id }}">
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label" for="{{ attachment_form.title.id_for_label }}">{{ attachment_form.title.label }}</label>
-                    {{ attachment_form.title }}
+                    <label class="form-label" for="attachment-search">Название файла (поиск)</label>
+                    <input type="text" id="attachment-search" class="form-control" placeholder="Поиск по имени, исходному имени и типу" autocomplete="off">
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-2">
+                    <label class="form-label" for="attachment-type-filter">Тип</label>
+                    <select id="attachment-type-filter" class="form-select">
+                        <option value="">Все типы</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label" for="attachment-sort">Сортировка</label>
+                    <select id="attachment-sort" class="form-select">
+                        <option value="date_desc">Сначала новые</option>
+                        <option value="date_asc">Сначала старые</option>
+                        <option value="name_asc">Имя А-Я</option>
+                        <option value="name_desc">Имя Я-А</option>
+                        <option value="type_asc">Тип А-Я</option>
+                        <option value="type_desc">Тип Я-А</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
                     <label class="form-label" for="{{ attachment_form.file.id_for_label }}">{{ attachment_form.file.label }}</label>
                     {{ attachment_form.file }}
                     <div class="form-text">Поддерживаются изображения, PDF, TXT, DOC, DOCX, XLS и XLSX.</div>
@@ -101,7 +118,7 @@
                     </thead>
                     <tbody>
                     {% for attachment in attachments %}
-                        <tr>
+                        <tr data-attachment-row="1" data-name="{{ attachment.display_name }}" data-type="{{ attachment.file_type_label }}" data-uploaded-ts="{{ attachment.uploaded_at|date:'U' }}" data-search-text="{{ attachment.display_name }} {{ attachment.original_name }} {{ attachment.file_type_label }}">
                             <td>
                                 {% if attachment.is_image %}
                                     <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">
@@ -130,7 +147,7 @@
                             </td>
                         </tr>
                     {% empty %}
-                        <tr>
+                        <tr data-attachment-empty="1">
                             <td colspan="6" class="text-center py-3">Вложения пока не добавлены.</td>
                         </tr>
                     {% endfor %}
@@ -402,6 +419,85 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    function setupAttachmentListTools() {
+        const searchInput = document.getElementById("attachment-search");
+        const typeFilter = document.getElementById("attachment-type-filter");
+        const sortSelect = document.getElementById("attachment-sort");
+        const attachmentRows = Array.from(document.querySelectorAll("tr[data-attachment-row='1']"));
+        const emptyRow = document.querySelector("tr[data-attachment-empty='1']");
+
+        if (!searchInput || !typeFilter || !sortSelect) {
+            return;
+        }
+
+        const normalize = (value) => (value || "").toLocaleLowerCase("ru-RU");
+        const uniqueTypes = Array.from(new Set(attachmentRows.map((row) => row.dataset.type || "").filter(Boolean))).sort((a, b) => a.localeCompare(b, "ru"));
+        uniqueTypes.forEach((type) => {
+            const option = document.createElement("option");
+            option.value = type;
+            option.textContent = type;
+            typeFilter.appendChild(option);
+        });
+
+        function applyAttachmentFilters() {
+            const query = normalize(searchInput.value.trim());
+            const selectedType = typeFilter.value;
+            const sortMode = sortSelect.value;
+
+            const sortedRows = [...attachmentRows].sort((left, right) => {
+                const leftName = left.dataset.name || "";
+                const rightName = right.dataset.name || "";
+                const leftType = left.dataset.type || "";
+                const rightType = right.dataset.type || "";
+                const leftTs = Number(left.dataset.uploadedTs || "0");
+                const rightTs = Number(right.dataset.uploadedTs || "0");
+
+                if (sortMode === "date_asc") {
+                    return leftTs - rightTs;
+                }
+                if (sortMode === "name_asc") {
+                    return leftName.localeCompare(rightName, "ru");
+                }
+                if (sortMode === "name_desc") {
+                    return rightName.localeCompare(leftName, "ru");
+                }
+                if (sortMode === "type_asc") {
+                    return leftType.localeCompare(rightType, "ru");
+                }
+                if (sortMode === "type_desc") {
+                    return rightType.localeCompare(leftType, "ru");
+                }
+                return rightTs - leftTs;
+            });
+
+            sortedRows.forEach((row) => row.parentElement.appendChild(row));
+
+            let visibleCount = 0;
+            sortedRows.forEach((row) => {
+                const haystack = normalize(row.dataset.searchText || "");
+                const rowType = row.dataset.type || "";
+                const matchesQuery = !query || haystack.includes(query);
+                const matchesType = !selectedType || rowType === selectedType;
+                const shouldShow = matchesQuery && matchesType;
+                row.classList.toggle("d-none", !shouldShow);
+                if (shouldShow) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (emptyRow) {
+                emptyRow.classList.toggle("d-none", visibleCount > 0);
+            }
+        }
+
+        searchInput.addEventListener("input", applyAttachmentFilters);
+        typeFilter.addEventListener("change", applyAttachmentFilters);
+        sortSelect.addEventListener("change", applyAttachmentFilters);
+        applyAttachmentFilters();
+    }
+
+    setupAttachmentListTools();
+
     function normalizeTag(value) {
         return (value || "").trim();
     }
