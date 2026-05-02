@@ -2,8 +2,12 @@ from django.contrib import admin
 from django.contrib.admin.sites import NotRegistered
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import Group, User
+from django.db.models import Count
 from django.db.models import Q
 from django.db.models.functions import Lower
+from django.urls import reverse
+from django.utils.html import format_html
+from urllib.parse import urlencode
 from types import MethodType
 
 from .models import (
@@ -242,6 +246,38 @@ class SearchableAdminMixin(TimestampReadonlyAdminMixin, CaseInsensitiveSearchAdm
     pass
 
 
+class StatusActionsAdminMixin:
+    status_field = "status"
+
+
+def make_status_action(action_name, target_value, description):
+    @admin.action(description=description)
+    def action(model_admin, request, queryset):
+        updated = queryset.update(**{model_admin.status_field: target_value})
+        model_admin.message_user(request, f"Обновлено записей: {updated}.")
+
+    action.__name__ = action_name
+    return action
+
+
+class CountLinksAdminMixin:
+    count_links: tuple[tuple[str, str, str, str], ...] = ()
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        annotations = {}
+        for _, count_attr, relation, _ in self.count_links:
+            annotations[count_attr] = Count(relation, distinct=True)
+        if annotations:
+            queryset = queryset.annotate(**annotations)
+        return queryset
+
+    def render_count_link(self, obj, count_attr, url_name, query_key):
+        count = getattr(obj, count_attr, 0) or 0
+        url = f"{reverse(f'admin:services_{url_name}_changelist')}?{urlencode({query_key: obj.pk})}"
+        return format_html('<a href="{}">{}</a>', url, count)
+
+
 def _build_admin_sections(self, request, app_list):
     grouped_apps = []
 
@@ -289,12 +325,24 @@ admin.site.index_title = "Справочники и настройки"
 admin.site.get_app_list = MethodType(_grouped_get_app_list, admin.site)
 
 
+set_status_active = make_status_action("set_status_active", "active", "Отметить как активные")
+set_status_registered = make_status_action("set_status_registered", "registered", "Отметить как зарегистрированные")
+set_status_disabled = make_status_action("set_status_disabled", "disabled", "Отметить как отключенные")
+set_status_deleted = make_status_action("set_status_deleted", "deleted", "Отметить как удаленные")
+
+
 @admin.register(Organization)
-class OrganizationAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "inn_kpp", "phone", "status", "updated_at")
+class OrganizationAdmin(StatusActionsAdminMixin, CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "inn_kpp", "phone", "status", "contacts_link", "addresses_link", "equipment_link", "updated_at")
     list_filter = ("status",)
     search_fields = ("name", "inn_kpp", "ogrn_passport", "phone", "email")
     ordering = ("name",)
+    count_links = (
+        ("contacts_link", "contacts_count", "contacts", "organization"),
+        ("addresses_link", "addresses_count", "address_links", "organization"),
+        ("equipment_link", "equipment_count", "client_equipments", "organization"),
+    )
+    actions = (set_status_active, set_status_registered)
     search_config = (
         ("name_lc", "name"),
         ("inn_kpp_lc", "inn_kpp"),
@@ -303,6 +351,18 @@ class OrganizationAdmin(SearchableAdminMixin, admin.ModelAdmin):
         ("email_lc", "email"),
     )
     inlines = [OrganizationAddressInline, OrganizationContactInline]
+
+    @admin.display(description="Контакты", ordering="contacts_count")
+    def contacts_link(self, obj):
+        return self.render_count_link(obj, "contacts_count", "organizationcontact", "organization__id__exact")
+
+    @admin.display(description="Адреса", ordering="addresses_count")
+    def addresses_link(self, obj):
+        return self.render_count_link(obj, "addresses_count", "organizationaddress", "organization__id__exact")
+
+    @admin.display(description="Техника", ordering="equipment_count")
+    def equipment_link(self, obj):
+        return self.render_count_link(obj, "equipment_count", "clientequipment", "organization__id__exact")
 
 
 @admin.register(OrganizationAddress)
@@ -329,11 +389,16 @@ class OrganizationContactAdmin(SearchableAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(ServiceCenter)
-class ServiceCenterAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "inn_kpp", "phone", "status", "updated_at")
+class ServiceCenterAdmin(StatusActionsAdminMixin, CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "inn_kpp", "phone", "status", "contacts_link", "addresses_link", "updated_at")
     list_filter = ("status",)
     search_fields = ("name", "inn_kpp", "ogrn_passport", "phone", "email")
     ordering = ("name",)
+    count_links = (
+        ("contacts_link", "contacts_count", "contacts", "service_center"),
+        ("addresses_link", "addresses_count", "address_links", "service_center"),
+    )
+    actions = (set_status_active, set_status_registered)
     search_config = (
         ("name_lc", "name"),
         ("inn_kpp_lc", "inn_kpp"),
@@ -342,6 +407,14 @@ class ServiceCenterAdmin(SearchableAdminMixin, admin.ModelAdmin):
         ("email_lc", "email"),
     )
     inlines = [ServiceCenterAddressInline, ServiceCenterContactInline]
+
+    @admin.display(description="Контакты", ordering="contacts_count")
+    def contacts_link(self, obj):
+        return self.render_count_link(obj, "contacts_count", "servicecentercontact", "service_center__id__exact")
+
+    @admin.display(description="Адреса", ordering="addresses_count")
+    def addresses_link(self, obj):
+        return self.render_count_link(obj, "addresses_count", "servicecenteraddress", "service_center__id__exact")
 
 
 @admin.register(ServiceCenterAddress)
@@ -368,9 +441,10 @@ class ServiceCenterContactAdmin(SearchableAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(ServiceMan)
-class ServiceManAdmin(SearchableAdminMixin, admin.ModelAdmin):
+class ServiceManAdmin(StatusActionsAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
     list_display = ("full_name", "phone", "status", "updated_at")
     list_filter = ("status",)
+    actions = (set_status_active, set_status_disabled, set_status_deleted)
     search_fields = ("full_name", "phone")
     search_config = (
         ("full_name_lc", "full_name"),
@@ -412,11 +486,15 @@ class EquipmentCharacteristicTypeAdmin(SearchableAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(ProductModel)
-class ProductModelAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "brand", "category", "sku", "updated_at")
+class ProductModelAdmin(CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "brand", "category", "sku", "compatibility_links", "attachment_links", "updated_at")
     list_filter = ("brand", "category")
     search_fields = ("name", "sku", "brand__name", "category__name")
     list_select_related = ("brand", "category")
+    count_links = (
+        ("compatibility_links", "consumables_count", "consumable_links", "product_model"),
+        ("attachment_links", "attachments_count", "attachments", "product_model"),
+    )
     search_config = (
         ("name_lc", "name"),
         ("sku_lc", "sku"),
@@ -425,6 +503,14 @@ class ProductModelAdmin(SearchableAdminMixin, admin.ModelAdmin):
     )
     autocomplete_fields = ("brand", "category")
     inlines = [ProductModelCharacteristicInline, ProductModelAttachmentInline]
+
+    @admin.display(description="Расходники", ordering="consumables_count")
+    def compatibility_links(self, obj):
+        return self.render_count_link(obj, "consumables_count", "consumablecompatibility", "product_model__id__exact")
+
+    @admin.display(description="Вложения", ordering="attachments_count")
+    def attachment_links(self, obj):
+        return self.render_count_link(obj, "attachments_count", "productmodelattachment", "product_model__id__exact")
 
 
 @admin.register(ProductModelCharacteristic)
@@ -445,11 +531,15 @@ class ProductModelAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin)
 
 
 @admin.register(Consumable)
-class ConsumableAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "brand", "category", "sku", "updated_at")
+class ConsumableAdmin(CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "brand", "category", "sku", "models_link", "attachments_link", "updated_at")
     list_filter = ("brand", "category")
     search_fields = ("name", "sku", "brand__name", "category__name")
     list_select_related = ("brand", "category")
+    count_links = (
+        ("models_link", "models_count", "compatibilities", "consumable"),
+        ("attachments_link", "attachments_count", "attachments", "consumable"),
+    )
     search_config = (
         ("name_lc", "name"),
         ("sku_lc", "sku"),
@@ -458,6 +548,14 @@ class ConsumableAdmin(SearchableAdminMixin, admin.ModelAdmin):
     )
     autocomplete_fields = ("brand", "category")
     inlines = [ConsumableCharacteristicInline, ConsumableCompatibilityInline, ConsumableAttachmentInline]
+
+    @admin.display(description="Модели", ordering="models_count")
+    def models_link(self, obj):
+        return self.render_count_link(obj, "models_count", "consumablecompatibility", "consumable__id__exact")
+
+    @admin.display(description="Вложения", ordering="attachments_count")
+    def attachments_link(self, obj):
+        return self.render_count_link(obj, "attachments_count", "consumableattachment", "consumable__id__exact")
 
 
 @admin.register(ConsumableCharacteristic)
@@ -487,11 +585,15 @@ class ConsumableAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(Part)
-class PartAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "brand", "category", "sku", "updated_at")
+class PartAdmin(CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "brand", "category", "sku", "models_link", "attachments_link", "updated_at")
     list_filter = ("brand", "category")
     search_fields = ("name", "sku", "brand__name", "category__name")
     list_select_related = ("brand", "category")
+    count_links = (
+        ("models_link", "models_count", "compatibilities", "part"),
+        ("attachments_link", "attachments_count", "attachments", "part"),
+    )
     search_config = (
         ("name_lc", "name"),
         ("sku_lc", "sku"),
@@ -500,6 +602,14 @@ class PartAdmin(SearchableAdminMixin, admin.ModelAdmin):
     )
     autocomplete_fields = ("brand", "category")
     inlines = [PartCharacteristicInline, PartCompatibilityInline, PartAttachmentInline]
+
+    @admin.display(description="Модели", ordering="models_count")
+    def models_link(self, obj):
+        return self.render_count_link(obj, "models_count", "partcompatibility", "part__id__exact")
+
+    @admin.display(description="Вложения", ordering="attachments_count")
+    def attachments_link(self, obj):
+        return self.render_count_link(obj, "attachments_count", "partattachment", "part__id__exact")
 
 
 @admin.register(PartCharacteristic)
@@ -529,14 +639,26 @@ class PartAttachmentAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(WorkDirectory)
-class WorkDirectoryAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("code", "name", "unit_price", "updated_at")
+class WorkDirectoryAdmin(CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("code", "name", "unit_price", "consumables_link", "parts_link", "updated_at")
     search_fields = ("code", "name")
+    count_links = (
+        ("consumables_link", "consumables_count", "consumable_links", "work"),
+        ("parts_link", "parts_count", "part_links", "work"),
+    )
     search_config = (
         ("code_lc", "code"),
         ("name_lc", "name"),
     )
     inlines = [WorkDirectoryConsumableInline, WorkDirectoryPartInline]
+
+    @admin.display(description="Расходники", ordering="consumables_count")
+    def consumables_link(self, obj):
+        return self.render_count_link(obj, "consumables_count", "workdirectoryconsumable", "work__id__exact")
+
+    @admin.display(description="Запчасти", ordering="parts_count")
+    def parts_link(self, obj):
+        return self.render_count_link(obj, "parts_count", "workdirectorypart", "work__id__exact")
 
 
 @admin.register(WorkDirectoryConsumable)
@@ -558,8 +680,12 @@ class WorkDirectoryPartAdmin(TimestampReadonlyAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(Address)
-class AddressAdmin(SearchableAdminMixin, admin.ModelAdmin):
-    list_display = ("locality", "street", "house", "postal_code", "updated_at")
+class AddressAdmin(CountLinksAdminMixin, SearchableAdminMixin, admin.ModelAdmin):
+    list_display = ("locality", "street", "house", "postal_code", "organizations_link", "service_centers_link", "updated_at")
+    count_links = (
+        ("organizations_link", "organizations_count", "organization_links", "address"),
+        ("service_centers_link", "service_centers_count", "service_center_links", "address"),
+    )
     search_fields = ("postal_code", "locality", "street", "house", "building", "structure", "room", "note")
     search_config = (
         ("postal_code_lc", "postal_code"),
@@ -571,6 +697,14 @@ class AddressAdmin(SearchableAdminMixin, admin.ModelAdmin):
         ("room_lc", "room"),
         ("note_lc", "note"),
     )
+
+    @admin.display(description="Организации", ordering="organizations_count")
+    def organizations_link(self, obj):
+        return self.render_count_link(obj, "organizations_count", "organizationaddress", "address__id__exact")
+
+    @admin.display(description="Сервисные центры", ordering="service_centers_count")
+    def service_centers_link(self, obj):
+        return self.render_count_link(obj, "service_centers_count", "servicecenteraddress", "address__id__exact")
 
 
 @admin.register(StatusDirectory)
