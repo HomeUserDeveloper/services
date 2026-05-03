@@ -1,13 +1,13 @@
 # Services Project Documentation
 
-Generated: 30.04.2026 01:00:45
+Generated: 03.05.2026 07:50:19
 
 ## Summary
 
-- Models: 38
+- Models: 42
 - Views: 63
 - Forms: 25
-- Admin classes: 6
+- Admin classes: 59
 - URL patterns: 75
 - Templates: 54
 
@@ -18,12 +18,25 @@ Generated: 30.04.2026 01:00:45
 | Field | Type |
 |---|---|
 | equipment_links | ManyToOneRel |
+| attachments | ManyToOneRel |
 | id | BigAutoField |
 | date | DateField |
 | serviceman | ForeignKey |
 | organization | ForeignKey |
+| catalog_url | URLField |
 | created_at | DateTimeField |
 | updated_at | DateTimeField |
+
+### AcceptanceDocumentAttachment
+
+| Field | Type |
+|---|---|
+| id | BigAutoField |
+| title | CharField |
+| original_name | CharField |
+| file | FileField |
+| uploaded_at | DateTimeField |
+| acceptance_document | ForeignKey |
 
 ### AcceptanceDocumentEquipment
 
@@ -75,6 +88,7 @@ Generated: 30.04.2026 01:00:45
 | Field | Type |
 |---|---|
 | title | CharField |
+| original_name | CharField |
 | file | FileField |
 | uploaded_at | DateTimeField |
 
@@ -91,7 +105,9 @@ Generated: 30.04.2026 01:00:45
 | repair_documents | ManyToOneRel |
 | acceptance_links | ManyToOneRel |
 | shipment_links | ManyToOneRel |
+| attachments | ManyToOneRel |
 | id | BigAutoField |
+| catalog_url | URLField |
 | organization | ForeignKey |
 | product_model | ForeignKey |
 | serial_number | CharField |
@@ -99,6 +115,17 @@ Generated: 30.04.2026 01:00:45
 | print_counter | PositiveIntegerField |
 | created_at | DateTimeField |
 | updated_at | DateTimeField |
+
+### ClientEquipmentAttachment
+
+| Field | Type |
+|---|---|
+| id | BigAutoField |
+| title | CharField |
+| original_name | CharField |
+| file | FileField |
+| uploaded_at | DateTimeField |
+| client_equipment | ForeignKey |
 
 ### Consumable
 
@@ -126,6 +153,7 @@ Generated: 30.04.2026 01:00:45
 |---|---|
 | id | BigAutoField |
 | title | CharField |
+| original_name | CharField |
 | file | FileField |
 | uploaded_at | DateTimeField |
 | consumable | ForeignKey |
@@ -232,6 +260,7 @@ Generated: 30.04.2026 01:00:45
 |---|---|
 | id | BigAutoField |
 | title | CharField |
+| original_name | CharField |
 | file | FileField |
 | uploaded_at | DateTimeField |
 | part | ForeignKey |
@@ -286,13 +315,7 @@ Generated: 30.04.2026 01:00:45
 | site | URLField |
 | category | ForeignKey |
 | brand | ForeignKey |
-| device_type | CharField |
-| color | CharField |
-| format_print | CharField |
-| speed_print | PositiveIntegerField |
 | sku | CharField |
-| weight | CharField |
-| dimensions | CharField |
 | created_at | DateTimeField |
 | updated_at | DateTimeField |
 
@@ -302,6 +325,7 @@ Generated: 30.04.2026 01:00:45
 |---|---|
 | id | BigAutoField |
 | title | CharField |
+| original_name | CharField |
 | file | FileField |
 | uploaded_at | DateTimeField |
 | product_model | ForeignKey |
@@ -325,6 +349,7 @@ Generated: 30.04.2026 01:00:45
 | work_links | ManyToOneRel |
 | acceptance_equipment_link | OneToOneRel |
 | shipment_equipment_link | OneToOneRel |
+| attachments | ManyToOneRel |
 | part_links | ManyToOneRel |
 | consumable_links | ManyToOneRel |
 | id | BigAutoField |
@@ -341,8 +366,20 @@ Generated: 30.04.2026 01:00:45
 | malfunction | TextField |
 | work_performed | TextField |
 | note | TextField |
+| catalog_url | URLField |
 | created_at | DateTimeField |
 | updated_at | DateTimeField |
+
+### RepairDocumentAttachment
+
+| Field | Type |
+|---|---|
+| id | BigAutoField |
+| title | CharField |
+| original_name | CharField |
+| file | FileField |
+| uploaded_at | DateTimeField |
+| repair_document | ForeignKey |
 
 ### RepairDocumentConsumable
 
@@ -451,12 +488,25 @@ Generated: 30.04.2026 01:00:45
 | Field | Type |
 |---|---|
 | equipment_links | ManyToOneRel |
+| attachments | ManyToOneRel |
 | id | BigAutoField |
 | date | DateField |
 | serviceman | ForeignKey |
 | organization | ForeignKey |
+| catalog_url | URLField |
 | created_at | DateTimeField |
 | updated_at | DateTimeField |
+
+### ShipmentDocumentAttachment
+
+| Field | Type |
+|---|---|
+| id | BigAutoField |
+| title | CharField |
+| original_name | CharField |
+| file | FileField |
+| uploaded_at | DateTimeField |
+| shipment_document | ForeignKey |
 
 ### ShipmentDocumentEquipment
 
@@ -610,12 +660,65 @@ Generated: 30.04.2026 01:00:45
 
 ## Admin
 
+- `AcceptanceDocumentAdmin`
+- `AcceptanceDocumentAttachmentAdmin`
+- `AcceptanceDocumentEquipmentAdmin`
+- `AddressAdmin`
+- `BrandAdmin`
 - `CaseInsensitiveSearchAdminMixin`
+- `ClientEquipmentAdmin`
+- `ConsumableAdmin`
+- `ConsumableAttachmentAdmin`
+- `ConsumableAttachmentInline`
+- `ConsumableCharacteristicAdmin`
+- `ConsumableCharacteristicInline`
+- `ConsumableCompatibilityAdmin`
+- `ConsumableCompatibilityInline`
+- `CountLinksAdminMixin`
 - `CustomGroupAdmin`
 - `CustomUserAdmin`
+- `EquipmentCharacteristicTypeAdmin`
+- `OrganizationAddressAdmin`
+- `OrganizationAddressInline`
 - `OrganizationAdmin`
 - `OrganizationContactAdmin`
 - `OrganizationContactInline`
+- `PartAdmin`
+- `PartAttachmentAdmin`
+- `PartAttachmentInline`
+- `PartCharacteristicAdmin`
+- `PartCharacteristicInline`
+- `PartCompatibilityAdmin`
+- `PartCompatibilityInline`
+- `ProductCategoryAdmin`
+- `ProductModelAdmin`
+- `ProductModelAttachmentAdmin`
+- `ProductModelAttachmentInline`
+- `ProductModelCharacteristicAdmin`
+- `ProductModelCharacteristicInline`
+- `RepairDocumentAdmin`
+- `RepairDocumentAttachmentAdmin`
+- `RepairDocumentConsumableAdmin`
+- `RepairDocumentPartAdmin`
+- `RepairDocumentWorkAdmin`
+- `SearchableAdminMixin`
+- `ServiceCenterAddressAdmin`
+- `ServiceCenterAddressInline`
+- `ServiceCenterAdmin`
+- `ServiceCenterContactAdmin`
+- `ServiceCenterContactInline`
+- `ServiceManAdmin`
+- `ShipmentDocumentAdmin`
+- `ShipmentDocumentAttachmentAdmin`
+- `ShipmentDocumentEquipmentAdmin`
+- `StatusActionsAdminMixin`
+- `StatusDirectoryAdmin`
+- `TimestampReadonlyAdminMixin`
+- `WorkDirectoryAdmin`
+- `WorkDirectoryConsumableAdmin`
+- `WorkDirectoryConsumableInline`
+- `WorkDirectoryPartAdmin`
+- `WorkDirectoryPartInline`
 
 ## URL Patterns
 
